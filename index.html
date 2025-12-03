@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Holo's Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"WF Visual Sans Variable"', 'Arial', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              // Updated Accent Blue
+              accent: {
+                500: '#146ef5',
+                600: '#146ef5', // Primary
+                700: '#0f52b8',
+              },
+              neutral: {
+                850: '#1f1f1f',
+                900: '#171717',
+                950: '#0a0a0a',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e4e4e7; 
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #3F3F46; 
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a1a1aa; 
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #52525B; 
+      }
+
+      /* Inverted Selection Colors */
+      ::selection {
+        background-color: #000000;
+        color: #ffffff;
+      }
+      .dark ::selection {
+        background-color: #ffffff;
+        color: #000000;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-50 dark:bg-[#141414] text-gray-900 dark:text-neutral-300 antialiased overflow-hidden">
+    <div id="root"></div>
+  </body>
+</html>
