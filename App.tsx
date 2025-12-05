@@ -59,6 +59,16 @@ const App = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  // Set Favicon
+  useEffect(() => {
+    const link = (document.querySelector("link[rel*='icon']") as HTMLLinkElement) || document.createElement('link');
+    link.type = 'image/svg+xml';
+    link.rel = 'shortcut icon';
+    // Use a terminal/command prompt style icon
+    link.href = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${theme === 'dark' ? 'white' : 'black'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>`;
+    document.getElementsByTagName('head')[0].appendChild(link);
+  }, [theme]);
+
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
@@ -179,7 +189,7 @@ const App = () => {
   const renderContent = () => {
     if (activeCategory === 'overview') {
         return (
-           <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+           <div className="w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
               <div className="mb-10 text-center md:text-left">
                   <h2 className="text-[45px] leading-tight font-semibold text-gray-900 dark:text-white mb-3 tracking-tight">Welcome back, Holo Drifter.</h2>
                   <p className="text-gray-500 dark:text-neutral-400 max-w-2xl">
@@ -215,7 +225,7 @@ const App = () => {
     const categoryTools = tools.filter(t => t.category === activeCategory);
     
     return (
-        <div className="max-w-7xl mx-auto h-full flex flex-col pb-6">
+        <div className="w-full mx-auto flex flex-col pb-20">
             <div className="mb-6 flex flex-col shrink-0 gap-4">
                 <div>
                     <h2 className="text-[45px] leading-tight font-semibold text-gray-900 dark:text-white tracking-tight">
@@ -227,7 +237,7 @@ const App = () => {
                 </div>
                 
                 {/* Tabs - Moved below Heading */}
-                <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar">
+                <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar max-w-full">
                     {categoryTools.map(tool => (
                         <button
                             key={tool.id}

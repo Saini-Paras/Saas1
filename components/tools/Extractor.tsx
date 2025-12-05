@@ -72,7 +72,7 @@ export const CollectionExtractorTool: React.FC<Props> = ({ notify }) => {
   );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <Card>
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Globe size={18} className="text-gray-400 dark:text-neutral-400" />
@@ -130,7 +130,7 @@ export const CollectionExtractorTool: React.FC<Props> = ({ notify }) => {
               <div 
                 key={idx} 
                 onClick={() => window.open(col.url, '_blank')}
-                className="bg-gray-50 dark:bg-[#0a0a0a] border border-gray-200 dark:border-neutral-800 rounded-lg overflow-hidden group hover:border-gray-300 dark:hover:border-neutral-600 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                className="bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-lg overflow-hidden group hover:border-gray-300 dark:hover:border-neutral-600 transition-all cursor-pointer shadow-sm hover:shadow-md"
               >
                 <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="min-w-0 flex-1">

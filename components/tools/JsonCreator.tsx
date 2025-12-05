@@ -130,7 +130,7 @@ export const JsonCreatorTool: React.FC<Props> = ({ notify }) => {
             </div>
           </div>
           
-          <div className="flex-1 bg-gray-50 dark:bg-[#050505] rounded-lg p-4 overflow-auto border border-gray-200 dark:border-neutral-800 relative group">
+          <div className="flex-1 bg-gray-50 dark:bg-[#171717] rounded-lg p-4 overflow-auto border border-gray-200 dark:border-neutral-800 relative group">
             {collections.length === 0 ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 dark:text-neutral-600 text-sm">
                 <FileJson size={32} className="mb-2 opacity-20" />

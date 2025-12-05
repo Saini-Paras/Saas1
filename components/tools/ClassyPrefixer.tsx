@@ -148,7 +148,7 @@ export const ClassyPrefixerTool: React.FC<Props> = ({ notify }) => {
                     id="excludeCommon" 
                     checked={excludeCommon}
                     onChange={(e) => setExcludeCommon(e.target.checked)}
-                    className="w-4 h-4 text-accent-600 rounded border-gray-300 focus:ring-accent-500 dark:bg-[#0a0a0a] dark:border-neutral-700"
+                    className="w-4 h-4 text-accent-600 rounded border-gray-300 focus:ring-accent-500 dark:bg-[#171717] dark:border-neutral-700"
                 />
                 <label htmlFor="excludeCommon" className="text-sm text-gray-600 dark:text-neutral-400 cursor-pointer select-none">
                     Exclude common framework classes (btn, container, row, etc.)
@@ -166,7 +166,7 @@ export const ClassyPrefixerTool: React.FC<Props> = ({ notify }) => {
                 value={htmlInput}
                 onChange={(e) => setHtmlInput(e.target.value)}
                 placeholder='<div class="card">...</div>'
-                className="flex-1 w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-200 dark:border-neutral-800 rounded-md p-3 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none leading-relaxed"
+                className="flex-1 w-full bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-md p-3 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none leading-relaxed"
             />
         </Card>
       </div>
@@ -204,7 +204,7 @@ export const ClassyPrefixerTool: React.FC<Props> = ({ notify }) => {
                 readOnly
                 value={htmlOutput}
                 placeholder="Transformed code will appear here..."
-                className="flex-1 w-full bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-neutral-800 rounded-md p-3 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none text-gray-600 dark:text-neutral-300 leading-relaxed"
+                className="flex-1 w-full bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-md p-3 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none text-gray-600 dark:text-neutral-300 leading-relaxed"
             />
         </Card>
       </div>

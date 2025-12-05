@@ -79,7 +79,7 @@ export const ImporterTool: React.FC<Props> = ({ notify }) => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
        <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-xl p-4 flex gap-3 text-yellow-700 dark:text-yellow-600 text-sm">
          <AlertCircle size={20} className="shrink-0 mt-0.5" />
          <p>

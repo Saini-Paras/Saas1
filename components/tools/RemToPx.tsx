@@ -135,7 +135,7 @@ export const RemToPxTool: React.FC<Props> = ({ notify }) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Paste CSS or HTML here..."
-              className="flex-1 w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-200 dark:border-neutral-800 rounded-md p-4 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none leading-relaxed transition-colors placeholder:text-gray-400 dark:placeholder:text-neutral-700"
+              className="flex-1 w-full bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-md p-4 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none leading-relaxed transition-colors placeholder:text-gray-400 dark:placeholder:text-neutral-600"
             />
           </Card>
 
@@ -153,7 +153,7 @@ export const RemToPxTool: React.FC<Props> = ({ notify }) => {
               readOnly
               value={output}
               placeholder="Converted code will appear here..."
-              className="flex-1 w-full bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-neutral-800 rounded-md p-4 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none leading-relaxed text-gray-700 dark:text-neutral-300 transition-colors"
+              className="flex-1 w-full bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-md p-4 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none leading-relaxed text-gray-700 dark:text-neutral-300 transition-colors"
             />
             <div className="pt-4">
               <Button variant="secondary" onClick={handleCopy} className="w-full" disabled={!output}>

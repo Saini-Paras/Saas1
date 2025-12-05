@@ -349,7 +349,7 @@ export const ShopifyScraperTool: React.FC<Props> = ({ notify, libsLoaded }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <Card className="min-h-[600px] flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-start mb-6">
@@ -363,15 +363,15 @@ export const ShopifyScraperTool: React.FC<Props> = ({ notify, libsLoaded }) => {
                     </div>
                 </div>
                 {step === 2 && !loading && (
-                    <Button variant="outline" onClick={reset} className="h-9">
-                        <RefreshCw size={14} className="mr-2" /> Start Over
+                    <Button variant="outline" onClick={reset} className="h-8 px-3 text-xs whitespace-nowrap shrink-0">
+                        <RefreshCw size={12} className="mr-1.5" /> Clear
                     </Button>
                 )}
             </div>
 
             {/* Step 1: Input */}
             {step === 1 && (
-             <div className="space-y-6 max-w-2xl">
+             <div className="space-y-6">
                 <div className="flex flex-col md:flex-row gap-4 items-end">
                     <div className="flex-1 w-full">
                         <Input
@@ -436,7 +436,7 @@ export const ShopifyScraperTool: React.FC<Props> = ({ notify, libsLoaded }) => {
                         <Button 
                             onClick={extractAndZip}
                             disabled={selectedIds.size === 0}
-                            className={selectedIds.size > 0 ? 'bg-green-600 hover:bg-green-700 text-white border-transparent' : ''}
+                            variant="primary"
                         >
                             <Download size={16} className="mr-2" /> 
                             Download Selected ({selectedIds.size})
@@ -444,75 +444,78 @@ export const ShopifyScraperTool: React.FC<Props> = ({ notify, libsLoaded }) => {
                      )}
                  </div>
 
-                 <div className="border border-gray-200 dark:border-neutral-800 rounded-lg overflow-hidden flex-1 max-h-[600px] overflow-y-auto bg-gray-50 dark:bg-[#0a0a0a] relative custom-scrollbar">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-white dark:bg-[#1e1e1e] sticky top-0 shadow-sm z-10 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-neutral-800">
-                            <tr>
-                                <th className="px-4 py-3 w-12 text-center">
-                                    <button onClick={toggleSelectAll} className="hover:bg-gray-100 dark:hover:bg-neutral-800 p-1 rounded transition-colors">
-                                        {selectedIds.size === filteredCollections.length && filteredCollections.length > 0 ? (
-                                            <CheckSquare size={18} className="text-accent-600 dark:text-accent-500" />
-                                        ) : (
-                                            <Square size={18} className="text-gray-300 dark:text-neutral-600" />
-                                        )}
-                                    </button>
-                                </th>
-                                <th className="px-4 py-3 font-semibold">Collection Title</th>
-                                <th className="px-4 py-3 font-semibold">Products</th>
-                                <th className="px-4 py-3 font-semibold">Status</th>
-                                <th className="px-4 py-3 font-semibold text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
-                            {filteredCollections.length === 0 ? (
+                 {/* Table Container with Horizontal Scroll Support */}
+                 <div className="border border-gray-200 dark:border-neutral-800 rounded-lg overflow-hidden flex-1 max-h-[600px] bg-gray-50 dark:bg-[#171717] relative flex flex-col">
+                    <div className="overflow-x-auto flex-1 custom-scrollbar">
+                        <table className="w-full text-sm text-left min-w-[800px]">
+                            <thead className="bg-white dark:bg-[#1e1e1e] sticky top-0 shadow-sm z-10 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-neutral-800">
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-12 text-center text-gray-400 dark:text-neutral-600">
-                                        No collections found matching "{searchQuery}"
-                                    </td>
+                                    <th className="px-4 py-3 w-12 text-center">
+                                        <button onClick={toggleSelectAll} className="hover:bg-gray-100 dark:hover:bg-neutral-800 p-1 rounded transition-colors">
+                                            {selectedIds.size === filteredCollections.length && filteredCollections.length > 0 ? (
+                                                <CheckSquare size={18} className="text-accent-600 dark:text-accent-500" />
+                                            ) : (
+                                                <Square size={18} className="text-gray-300 dark:text-neutral-600" />
+                                            )}
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Collection Title</th>
+                                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Products</th>
+                                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Status</th>
+                                    <th className="px-4 py-3 font-semibold text-right whitespace-nowrap">Action</th>
                                 </tr>
-                            ) : (
-                                filteredCollections.map((col) => {
-                                    const isSelected = selectedIds.has(col.id);
-                                    return (
-                                        <tr key={col.id} className={`transition-colors hover:bg-white dark:hover:bg-[#151515] ${isSelected ? 'bg-accent-50 dark:bg-accent-900/10' : ''}`}>
-                                            <td className="px-4 py-3 text-center">
-                                                <button onClick={() => toggleSelection(col.id)} className="focus:outline-none">
-                                                    {isSelected ? (
-                                                        <CheckSquare size={18} className="text-accent-600 dark:text-accent-500" />
-                                                    ) : (
-                                                        <Square size={18} className="text-gray-300 dark:text-neutral-600 hover:text-gray-400 dark:hover:text-neutral-500" />
-                                                    )}
-                                                </button>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="font-medium text-gray-900 dark:text-white">{col.title}</div>
-                                                <div className="text-xs text-gray-400 dark:text-neutral-500 font-mono">{col.handle}</div>
-                                            </td>
-                                            <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-                                                {typeof col.products_count === 'number' ? col.products_count : '-'}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                {col.status === 'pending' && <span className="text-gray-400 dark:text-neutral-600 text-xs bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 rounded">Waiting</span>}
-                                                {col.status === 'processing' && <span className="text-accent-600 dark:text-accent-400 text-xs font-bold flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Processing</span>}
-                                                {col.status === 'success' && <span className="text-green-600 dark:text-green-400 text-xs font-bold flex items-center gap-1"><CheckCircle className="w-3 h-3"/> {col.extractedCount} Extracted</span>}
-                                                {col.status === 'error' && <span className="text-red-500 dark:text-red-400 text-xs font-bold">Failed</span>}
-                                            </td>
-                                            <td className="px-4 py-3 text-right">
-                                                <button 
-                                                    onClick={() => downloadSingle(col)}
-                                                    disabled={loading}
-                                                    className="text-gray-400 hover:text-accent-600 dark:text-neutral-500 dark:hover:text-white disabled:opacity-50 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-                                                    title="Download just this collection"
-                                                >
-                                                    <FileText size={16} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
+                                {filteredCollections.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-4 py-12 text-center text-gray-400 dark:text-neutral-600">
+                                            No collections found matching "{searchQuery}"
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredCollections.map((col) => {
+                                        const isSelected = selectedIds.has(col.id);
+                                        return (
+                                            <tr key={col.id} className={`transition-colors hover:bg-white dark:hover:bg-[#151515] ${isSelected ? 'bg-accent-50 dark:bg-accent-900/10' : ''}`}>
+                                                <td className="px-4 py-3 text-center">
+                                                    <button onClick={() => toggleSelection(col.id)} className="focus:outline-none">
+                                                        {isSelected ? (
+                                                            <CheckSquare size={18} className="text-accent-600 dark:text-accent-500" />
+                                                        ) : (
+                                                            <Square size={18} className="text-gray-300 dark:text-neutral-600 hover:text-gray-400 dark:hover:text-neutral-500" />
+                                                        )}
+                                                    </button>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="font-medium text-gray-900 dark:text-white whitespace-nowrap">{col.title}</div>
+                                                    <div className="text-xs text-gray-400 dark:text-neutral-500 font-mono">{col.handle}</div>
+                                                </td>
+                                                <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                                                    {typeof col.products_count === 'number' ? col.products_count : '-'}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {col.status === 'pending' && <span className="text-gray-400 dark:text-neutral-600 text-xs bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 rounded">Waiting</span>}
+                                                    {col.status === 'processing' && <span className="text-accent-600 dark:text-accent-400 text-xs font-bold flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Processing</span>}
+                                                    {col.status === 'success' && <span className="text-green-600 dark:text-green-400 text-xs font-bold flex items-center gap-1"><CheckCircle className="w-3 h-3"/> {col.extractedCount} Extracted</span>}
+                                                    {col.status === 'error' && <span className="text-red-500 dark:text-red-400 text-xs font-bold">Failed</span>}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button 
+                                                        onClick={() => downloadSingle(col)}
+                                                        disabled={loading}
+                                                        className="text-gray-400 hover:text-accent-600 dark:text-neutral-500 dark:hover:text-white disabled:opacity-50 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
+                                                        title="Download just this collection"
+                                                    >
+                                                        <FileText size={16} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                  </div>
                  
                  {loading && (

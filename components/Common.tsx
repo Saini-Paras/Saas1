@@ -16,7 +16,6 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button: React.FC<ButtonProps> = ({ children, className = "", variant = "primary", ...props }) => {
   const baseStyle = "px-4 py-2.5 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98] border";
   const variants = {
-    // Updated primary color #146ef5, removed heavy shadows
     primary: "bg-[#146ef5] hover:bg-[#115ac9] text-white border-transparent disabled:opacity-50 disabled:cursor-not-allowed",
     secondary: "bg-white text-gray-700 hover:bg-gray-50 border-gray-200 dark:bg-[#252525] dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-[#2a2a2a] disabled:opacity-50",
     outline: "bg-transparent text-gray-700 dark:text-neutral-300 border-gray-300 dark:border-neutral-700 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-black dark:hover:text-white disabled:opacity-50",
@@ -47,7 +46,7 @@ export const Input: React.FC<InputProps> = ({ label, className = "", icon: Icon,
         </div>
       )}
       <input
-        className={`bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all placeholder:text-gray-400 dark:placeholder:text-neutral-700 w-full ${Icon ? 'pl-10 pr-3' : 'px-3'}`}
+        className={`bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all placeholder:text-gray-400 dark:placeholder:text-neutral-600 w-full ${Icon ? 'pl-10 pr-3' : 'px-3'}`}
         {...props}
       />
     </div>
@@ -64,7 +63,7 @@ export const Select: React.FC<SelectProps> = ({ label, children, className = "",
         {label && <label className="text-[11px] font-semibold text-gray-500 dark:text-neutral-500 uppercase tracking-widest">{label}</label>}
         <div className="relative">
             <select
-                className="bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all w-full appearance-none"
+                className="bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all w-full appearance-none"
                 {...props}
             >
                 {children}
@@ -87,7 +86,7 @@ export const TextArea: React.FC<TextAreaProps> = ({ label, className = "", ...pr
   <div className={`flex flex-col gap-1.5 w-full ${className}`}>
     {label && <label className="text-[11px] font-semibold text-gray-500 dark:text-neutral-500 uppercase tracking-widest">{label}</label>}
     <textarea
-      className="bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all placeholder:text-gray-400 dark:placeholder:text-neutral-700 resize-y font-mono leading-relaxed"
+      className="bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all placeholder:text-gray-400 dark:placeholder:text-neutral-600 resize-y font-mono leading-relaxed"
       {...props}
     />
   </div>
@@ -115,7 +114,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ label, accept, onFileSel
         border border-dashed rounded-lg p-8 text-center transition-all duration-300
         ${file 
             ? 'border-blue-200 bg-blue-50 dark:border-green-800/50 dark:bg-green-950/10' 
-            : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-blue-300 dark:border-neutral-800 dark:bg-[#0a0a0a] dark:group-hover:border-neutral-600 dark:group-hover:bg-[#0f0f0f]'}
+            : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-blue-300 dark:border-neutral-800 dark:bg-[#171717] dark:group-hover:border-neutral-600 dark:group-hover:bg-[#1f1f1f]'}
       `}>
         {file ? (
           <div className="flex items-center justify-center gap-2 text-accent-600 dark:text-green-400">
