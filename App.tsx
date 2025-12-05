@@ -14,6 +14,7 @@ import {
   Code2,
   Type,
   Scaling,
+  FileArchive,
 } from 'lucide-react';
 import { loadScript } from './utils';
 import { Tool, ToolId, Notification, ToolCategory } from './types';
@@ -26,6 +27,7 @@ import { ImporterTool } from './components/tools/Importer';
 import { CollectionExtractorTool } from './components/tools/Extractor';
 import { ClassyPrefixerTool } from './components/tools/ClassyPrefixer';
 import { RemToPxTool } from './components/tools/RemToPx';
+import { ShopifyScraperTool } from './components/tools/ShopifyScraper';
 
 const App = () => {
   // Navigation State
@@ -114,6 +116,13 @@ const App = () => {
         description: "Scrape public collection data.",
         category: "shopify"
     },
+    {
+        id: "shopify-scraper",
+        label: "Shopify Bulk Scraper",
+        icon: <FileArchive size={18} />,
+        description: "Download products from multiple collections.",
+        category: "shopify"
+    },
     // Web Tools
     {
         id: "classy-prefixer",
@@ -160,6 +169,7 @@ const App = () => {
           case 'json-creator': return <JsonCreatorTool notify={notify} />;
           case 'importer': return <ImporterTool notify={notify} />;
           case 'extractor': return <CollectionExtractorTool notify={notify} />;
+          case 'shopify-scraper': return <ShopifyScraperTool notify={notify} libsLoaded={libsLoaded} />;
           case 'classy-prefixer': return <ClassyPrefixerTool notify={notify} />;
           case 'rem-to-px': return <RemToPxTool notify={notify} />;
           default: return null;
@@ -217,7 +227,7 @@ const App = () => {
                 </div>
                 
                 {/* Tabs - Moved below Heading */}
-                <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start">
+                <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar">
                     {categoryTools.map(tool => (
                         <button
                             key={tool.id}

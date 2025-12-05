@@ -17,6 +17,7 @@ export type ToolId =
   | 'json-creator' 
   | 'importer' 
   | 'extractor'
+  | 'shopify-scraper'
   // Web Tools
   | 'classy-prefixer'
   | 'rem-to-px';
