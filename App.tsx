@@ -15,6 +15,7 @@ import {
   Type,
   Scaling,
   FileArchive,
+  Layers,
 } from 'lucide-react';
 import { loadScript } from './utils';
 import { Tool, ToolId, Notification, ToolCategory } from './types';
@@ -28,6 +29,7 @@ import { CollectionExtractorTool } from './components/tools/Extractor';
 import { ClassyPrefixerTool } from './components/tools/ClassyPrefixer';
 import { RemToPxTool } from './components/tools/RemToPx';
 import { ShopifyScraperTool } from './components/tools/ShopifyScraper';
+import { MenuBuilderTool } from './components/tools/MenuBuilder';
 
 const App = () => {
   // Navigation State
@@ -47,6 +49,13 @@ const App = () => {
     }
     return 'dark'; // Default to dark if unknown
   });
+
+  // Title mapping
+  const categoryTitles: Record<string, string> = {
+    shopify: 'Shopify Tools',
+    web: 'Web Dev Tools',
+    builder: 'Menu Builder'
+  };
 
   // Apply Theme
   useEffect(() => {
@@ -147,6 +156,14 @@ const App = () => {
         icon: <Scaling size={18} />,
         description: "Convert CSS units instantly.",
         category: "web"
+    },
+    // Menu Builder (Single Tool Category)
+    {
+        id: "menu-builder",
+        label: "Menu Builder",
+        icon: <Layers size={18} />,
+        description: "Create deeply nested menus for Shopify.",
+        category: "builder"
     }
   ];
 
@@ -161,8 +178,12 @@ const App = () => {
 
   const handleCategorySelect = (category: ToolCategory) => {
       setActiveCategory(category);
+      // For single tool categories (like builder), auto-select the tool
+      if (category === 'builder') {
+          setActiveToolId('menu-builder');
+      } 
       // If switching to a tool category, select the first tool by default if none selected
-      if (category !== 'overview') {
+      else if (category !== 'overview') {
           const firstTool = tools.find(t => t.category === category);
           if (firstTool && (!activeToolId || tools.find(t => t.id === activeToolId)?.category !== category)) {
               setActiveToolId(firstTool.id);
@@ -182,6 +203,7 @@ const App = () => {
           case 'shopify-scraper': return <ShopifyScraperTool notify={notify} libsLoaded={libsLoaded} />;
           case 'classy-prefixer': return <ClassyPrefixerTool notify={notify} />;
           case 'rem-to-px': return <RemToPxTool notify={notify} />;
+          case 'menu-builder': return <MenuBuilderTool notify={notify} />;
           default: return null;
       }
   };
@@ -229,31 +251,35 @@ const App = () => {
             <div className="mb-6 flex flex-col shrink-0 gap-4">
                 <div>
                     <h2 className="text-[45px] leading-tight font-semibold text-gray-900 dark:text-white tracking-tight">
-                        {activeCategory === 'shopify' ? 'Shopify Tools' : 'Web Dev Tools'}
+                        {categoryTitles[activeCategory] || 'Tools'}
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-                        {activeCategory === 'shopify' ? 'Manage products, collections, and store data.' : 'Utilities for frontend development and HTML processing.'}
+                        {activeCategory === 'shopify' ? 'Manage products, collections, and store data.' : 
+                         activeCategory === 'web' ? 'Utilities for frontend development and HTML processing.' :
+                         'Deeply nested menu construction for Shopify.'}
                     </p>
                 </div>
                 
-                {/* Tabs - Moved below Heading */}
-                <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar max-w-full">
-                    {categoryTools.map(tool => (
-                        <button
-                            key={tool.id}
-                            onClick={() => setActiveToolId(tool.id)}
-                            className={`
-                                flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap
-                                ${activeToolId === tool.id 
-                                    ? 'bg-white dark:bg-[#333] text-accent-600 dark:text-white shadow-sm' 
-                                    : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white'}
-                            `}
-                        >
-                            {tool.icon}
-                            {tool.label}
-                        </button>
-                    ))}
-                </div>
+                {/* Tabs - Only show if there are multiple tools in category */}
+                {categoryTools.length > 1 && (
+                    <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar max-w-full w-full lg:w-auto shrink-0">
+                        {categoryTools.map(tool => (
+                            <button
+                                key={tool.id}
+                                onClick={() => setActiveToolId(tool.id)}
+                                className={`
+                                    flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap shrink-0
+                                    ${activeToolId === tool.id 
+                                        ? 'bg-white dark:bg-[#333] text-accent-600 dark:text-white shadow-sm' 
+                                        : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white'}
+                                `}
+                            >
+                                {tool.icon}
+                                {tool.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="flex-1 overflow-visible">
@@ -356,6 +382,20 @@ const App = () => {
                  Web Tools
                </span>
              </button>
+
+             <button
+               onClick={() => handleCategorySelect('builder')}
+               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
+                 ${activeCategory === 'builder' 
+                   ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
+                   : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
+               `}
+             >
+               <Layers size={20} className={`shrink-0 ${activeCategory === 'builder' ? 'text-accent-600 dark:text-white' : ''}`} />
+               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'lg:opacity-0 lg:group-hover/sidebar:opacity-100'}`}>
+                 Menu Builder
+               </span>
+             </button>
           </div>
         </div>
 
@@ -388,7 +428,7 @@ const App = () => {
                <span className="hidden md:inline">Dashboard</span>
                <span className="text-gray-300 dark:text-neutral-700">/</span>
                <span className="text-gray-900 dark:text-white font-medium capitalize">
-                   {activeCategory === 'overview' ? 'Overview' : activeCategory + ' Tools'}
+                   {activeCategory === 'overview' ? 'Overview' : categoryTitles[activeCategory] || activeCategory + ' Tools'}
                </span>
              </div>
           </div>

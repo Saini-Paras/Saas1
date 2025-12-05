@@ -20,9 +20,11 @@ export type ToolId =
   | 'shopify-scraper'
   // Web Tools
   | 'classy-prefixer'
-  | 'rem-to-px';
+  | 'rem-to-px'
+  // Builders
+  | 'menu-builder';
 
-export type ToolCategory = 'overview' | 'shopify' | 'web';
+export type ToolCategory = 'overview' | 'shopify' | 'web' | 'builder';
 
 export interface Tool {
   id: ToolId;
