@@ -7,11 +7,20 @@ import {
   FileArchive, 
   Type, 
   Scaling, 
-  Layers 
+  Layers,
+  Workflow
 } from 'lucide-react';
 import { Tool } from '../types';
 
 export const tools: Tool[] = [
+  // Beta Workflow
+  {
+      id: "shopify-workflow",
+      label: "Automated Workflow",
+      icon: <Workflow size={18} />,
+      description: "Complete pipeline: Scrape -> Tag -> Generate -> Import.",
+      category: "beta"
+  },
   // Shopify Tools
   { 
       id: "tag-automation", 
@@ -74,6 +83,7 @@ export const tools: Tool[] = [
 ];
 
 export const categoryTitles: Record<string, string> = {
+  beta: 'Beta Workflows',
   shopify: 'Shopify Tools',
   web: 'Web Dev Tools',
   builder: 'Menu Builder'

@@ -18,13 +18,15 @@ export type ToolId =
   | 'importer' 
   | 'extractor'
   | 'shopify-scraper'
+  // Beta Workflow
+  | 'shopify-workflow'
   // Web Tools
   | 'classy-prefixer'
   | 'rem-to-px'
   // Builders
   | 'menu-builder';
 
-export type ToolCategory = 'overview' | 'shopify' | 'web' | 'builder';
+export type ToolCategory = 'overview' | 'shopify' | 'web' | 'builder' | 'beta';
 
 export interface Tool {
   id: ToolId;
@@ -56,6 +58,8 @@ export interface ExtractedCollection {
   handle: string;
   url: string;
   description: string;
+  products_count?: number;
+  id?: number | string;
 }
 
 // Global Library Types (loaded via CDN)

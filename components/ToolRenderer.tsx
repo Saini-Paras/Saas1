@@ -10,6 +10,7 @@ import { ClassyPrefixerTool } from './tools/ClassyPrefixer';
 import { RemToPxTool } from './tools/RemToPx';
 import { ShopifyScraperTool } from './tools/ShopifyScraper';
 import { MenuBuilderTool } from './tools/MenuBuilder';
+import { ShopifyWorkflowTool } from './tools/ShopifyWorkflow';
 
 interface Props {
   activeToolId: ToolId | null;
@@ -29,6 +30,7 @@ export const ToolRenderer: React.FC<Props> = ({ activeToolId, notify, libsLoaded
       case 'classy-prefixer': return <ClassyPrefixerTool notify={notify} />;
       case 'rem-to-px': return <RemToPxTool notify={notify} />;
       case 'menu-builder': return <MenuBuilderTool notify={notify} />;
+      case 'shopify-workflow': return <ShopifyWorkflowTool notify={notify} libsLoaded={libsLoaded} />;
       default: return <div>Tool not found</div>;
   }
 };

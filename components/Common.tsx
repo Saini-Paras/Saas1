@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Upload, LucideIcon } from 'lucide-react';
+import { CheckCircle, Upload, LucideIcon, Check } from 'lucide-react';
 
 // --- Card ---
 export const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
@@ -138,5 +138,36 @@ export const FileUpload: React.FC<FileUploadProps> = ({ label, accept, onFileSel
         )}
       </div>
     </div>
+  </div>
+);
+
+// --- Stepper ---
+interface Step {
+  title: string;
+  description: string;
+}
+
+export const Stepper: React.FC<{ steps: Step[]; currentStep: number }> = ({ steps, currentStep }) => (
+  <div className="flex items-center justify-between w-full mb-8 relative">
+    <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gray-200 dark:bg-neutral-800 -z-10" />
+    {steps.map((step, idx) => {
+        const isCompleted = idx + 1 < currentStep;
+        const isCurrent = idx + 1 === currentStep;
+        
+        return (
+            <div key={idx} className="flex flex-col items-center gap-2 bg-gray-50 dark:bg-[#141414] px-4">
+                <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300
+                    ${isCompleted ? 'bg-green-500 text-white' : isCurrent ? 'bg-accent-600 text-white ring-4 ring-accent-500/20' : 'bg-gray-200 dark:bg-neutral-800 text-gray-500 dark:text-neutral-500'}
+                `}>
+                    {isCompleted ? <Check size={14} /> : idx + 1}
+                </div>
+                <div className="text-center">
+                    <div className={`text-xs font-semibold ${isCurrent ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-neutral-500'}`}>{step.title}</div>
+                    <div className="text-[10px] text-gray-400 hidden sm:block">{step.description}</div>
+                </div>
+            </div>
+        )
+    })}
   </div>
 );
