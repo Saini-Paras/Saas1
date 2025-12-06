@@ -1,79 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Upload, 
-  FileJson, 
-  Database,
-  Link as LinkIcon,
-  Menu,
-  ChevronRight,
-  Sparkles,
-  Moon,
-  Sun,
-  Code2,
-  Type,
-  Scaling,
-  FileArchive,
-  Layers,
-  PanelLeftClose,
-  PanelLeftOpen
-} from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { loadScript } from './utils';
-import { Tool, ToolId, Notification, ToolCategory } from './types';
-
-// Components
+import { ToolId, Notification, ToolCategory } from './types';
 import { Toast } from './components/Toast';
-import { TagAutomationTool } from './components/tools/TagAutomation';
-import { JsonCreatorTool } from './components/tools/JsonCreator';
-import { ImporterTool } from './components/tools/Importer';
-import { CollectionExtractorTool } from './components/tools/Extractor';
-import { ClassyPrefixerTool } from './components/tools/ClassyPrefixer';
-import { RemToPxTool } from './components/tools/RemToPx';
-import { ShopifyScraperTool } from './components/tools/ShopifyScraper';
-import { MenuBuilderTool } from './components/tools/MenuBuilder';
+import { tools, categoryTitles } from './config/tools';
+import { ToolRenderer } from './components/ToolRenderer';
+import { Sidebar } from './components/layout/Sidebar';
+import { Header } from './components/layout/Header';
 
 const App = () => {
-  // Navigation State
+  // --- State ---
   const [activeCategory, setActiveCategory] = useState<ToolCategory>("overview");
   const [activeToolId, setActiveToolId] = useState<ToolId | null>(null);
-  
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isDesktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [isSidebarHovered, setSidebarHovered] = useState(false);
-
   const [libsLoaded, setLibsLoaded] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   
-  // Theme State
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('theme');
         if (saved) return saved as 'light' | 'dark';
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    return 'dark'; // Default to dark if unknown
+    return 'dark';
   });
 
-  // Title mapping
-  const categoryTitles: Record<string, string> = {
-    shopify: 'Shopify Tools',
-    web: 'Web Dev Tools',
-    builder: 'Menu Builder'
-  };
-
-  // Apply Theme
+  // --- Effects ---
   useEffect(() => {
     const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    if (theme === 'dark') root.classList.add('dark');
+    else root.classList.remove('dark');
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  // Set Favicon
   useEffect(() => {
     const link = (document.querySelector("link[rel*='icon']") as HTMLLinkElement) || document.createElement('link');
     link.type = 'image/svg+xml';
@@ -82,12 +43,7 @@ const App = () => {
     document.getElementsByTagName('head')[0].appendChild(link);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
-
   useEffect(() => {
-    // Load external libs required for Tag Automation
     const loadLibs = async () => {
       try {
         await loadScript("https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js");
@@ -98,80 +54,16 @@ const App = () => {
       }
     };
     loadLibs();
-
-    if (window.innerWidth < 1024) {
-      setSidebarOpen(false);
-    }
+    if (window.innerWidth < 1024) setSidebarOpen(false);
   }, []);
 
+  // --- Handlers ---
   const notify = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setNotification({ message, type, id: Date.now() });
   };
 
-  // --- Tool Definitions ---
-  const tools: Tool[] = [
-    // Shopify Tools
-    { 
-        id: "tag-automation", 
-        label: "Tag Automation", 
-        icon: <Database size={18} />, 
-        description: "Auto-tag products via CSV & ZIP processing.",
-        category: "shopify"
-    },
-    { 
-        id: "json-creator", 
-        label: "JSON Creator", 
-        icon: <FileJson size={18} />, 
-        description: "Build Smart Collection JSONs visually.",
-        category: "shopify"
-    },
-    { 
-        id: "importer", 
-        label: "Collection Importer", 
-        icon: <Upload size={18} />, 
-        description: "Bulk upload collections via API.",
-        category: "shopify"
-    },
-    { 
-        id: "extractor", 
-        label: "Collection Extractor", 
-        icon: <LinkIcon size={18} />, 
-        description: "Scrape public collection data.",
-        category: "shopify"
-    },
-    {
-        id: "shopify-scraper",
-        label: "Shopify Bulk Scraper",
-        icon: <FileArchive size={18} />,
-        description: "Download products from multiple collections.",
-        category: "shopify"
-    },
-    // Web Tools
-    {
-        id: "classy-prefixer",
-        label: "Classy Prefixer",
-        icon: <Type size={18} />,
-        description: "Intelligent HTML class prefixer.",
-        category: "web"
-    },
-    {
-        id: "rem-to-px",
-        label: "Rem to Px",
-        icon: <Scaling size={18} />,
-        description: "Convert CSS units instantly.",
-        category: "web"
-    },
-    // Menu Builder (Single Tool Category)
-    {
-        id: "menu-builder",
-        label: "Menu Builder",
-        icon: <Layers size={18} />,
-        description: "Create deeply nested menus for Shopify.",
-        category: "builder"
-    }
-  ];
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
-  // --- Handlers ---
   const handleToolSelect = (toolId: ToolId) => {
     const tool = tools.find(t => t.id === toolId);
     if (tool) {
@@ -195,21 +87,9 @@ const App = () => {
       }
   };
 
-  const renderTool = (id: ToolId) => {
-      switch(id) {
-          case 'tag-automation': return <TagAutomationTool libsLoaded={libsLoaded} notify={notify} />;
-          case 'json-creator': return <JsonCreatorTool notify={notify} />;
-          case 'importer': return <ImporterTool notify={notify} />;
-          case 'extractor': return <CollectionExtractorTool notify={notify} />;
-          case 'shopify-scraper': return <ShopifyScraperTool notify={notify} libsLoaded={libsLoaded} />;
-          case 'classy-prefixer': return <ClassyPrefixerTool notify={notify} />;
-          case 'rem-to-px': return <RemToPxTool notify={notify} />;
-          case 'menu-builder': return <MenuBuilderTool notify={notify} />;
-          default: return null;
-      }
-  };
-
+  // --- Render Helpers ---
   const renderContent = () => {
+    // 1. Overview Dashboard
     if (activeCategory === 'overview') {
         return (
            <div className="w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -244,6 +124,7 @@ const App = () => {
         );
     }
 
+    // 2. Tool View
     const categoryTools = tools.filter(t => t.category === activeCategory);
     
     return (
@@ -282,7 +163,7 @@ const App = () => {
             </div>
 
             <div className="flex-1 overflow-visible">
-                 {activeToolId && renderTool(activeToolId)}
+                 <ToolRenderer activeToolId={activeToolId} notify={notify} libsLoaded={libsLoaded} />
             </div>
         </div>
     );
@@ -292,181 +173,32 @@ const App = () => {
 
   return (
     <div className="h-screen w-full flex bg-gray-50 dark:bg-[#141414] overflow-hidden transition-colors duration-300 font-sans">
-      
-      {/* Notifications */}
       {notification && (
-        <Toast 
-          key={notification.id}
-          message={notification.message} 
-          type={notification.type} 
-          onClose={() => setNotification(null)} 
-        />
+        <Toast key={notification.id} message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}
 
-      {/* Mobile Sidebar Backdrop */}
       {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside 
-        onMouseEnter={() => setSidebarHovered(true)}
-        onMouseLeave={() => setSidebarHovered(false)}
-        className={`
-          fixed lg:static inset-y-0 left-0 z-50 h-full
-          bg-white dark:bg-[#1e1e1e] border-r border-gray-200 dark:border-neutral-800
-          transition-all duration-300 ease-in-out
-          ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'}
-          ${effectiveDesktopOpen ? 'lg:w-64' : 'lg:w-[72px]'}
-          flex flex-col group/sidebar z-50 shadow-xl lg:shadow-none
-        `}
-      >
-        {/* Sidebar Header */}
-        <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-neutral-800 overflow-hidden whitespace-nowrap shrink-0">
-          <div className="flex items-center gap-3 font-semibold text-gray-900 dark:text-white tracking-tight">
-            <div className="w-8 h-8 bg-accent-600 rounded-md flex items-center justify-center shrink-0 shadow-sm">
-              <Sparkles size={16} className="text-white fill-current" />
-            </div>
-            <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden')}`}>
-               Holo's DB
-            </span>
-          </div>
-        </div>
+      <Sidebar 
+        activeCategory={activeCategory}
+        onSelectCategory={handleCategorySelect}
+        isSidebarOpen={isSidebarOpen}
+        effectiveDesktopOpen={effectiveDesktopOpen}
+        setSidebarHovered={setSidebarHovered}
+      />
 
-        {/* Sidebar Navigation */}
-        <div className="p-3 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
-          
-          <div className="space-y-1">
-             <button
-               onClick={() => handleCategorySelect('overview')}
-               className={`w-full flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
-                 ${activeCategory === 'overview' 
-                   ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
-                   : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
-                 ${effectiveDesktopOpen ? 'justify-start gap-3' : 'justify-center'}
-               `}
-               title="Dashboard"
-             >
-               <LayoutDashboard size={20} className={`shrink-0 ${activeCategory === 'overview' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
-                 Overview
-               </span>
-             </button>
-          </div>
-
-          <div className="space-y-1">
-             <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden')}`}>
-                Workspaces
-             </div>
-
-             <button
-               onClick={() => handleCategorySelect('shopify')}
-               className={`w-full flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
-                 ${activeCategory === 'shopify' 
-                   ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
-                   : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
-                 ${effectiveDesktopOpen ? 'justify-start gap-3' : 'justify-center'}
-               `}
-               title="Shopify Tools"
-             >
-               <ShoppingBag size={20} className={`shrink-0 ${activeCategory === 'shopify' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
-                 Shopify Tools
-               </span>
-             </button>
-
-             <button
-               onClick={() => handleCategorySelect('web')}
-               className={`w-full flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
-                 ${activeCategory === 'web' 
-                   ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
-                   : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
-                 ${effectiveDesktopOpen ? 'justify-start gap-3' : 'justify-center'}
-               `}
-               title="Web Tools"
-             >
-               <Code2 size={20} className={`shrink-0 ${activeCategory === 'web' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
-                 Web Tools
-               </span>
-             </button>
-
-             <button
-               onClick={() => handleCategorySelect('builder')}
-               className={`w-full flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
-                 ${activeCategory === 'builder' 
-                   ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
-                   : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
-                 ${effectiveDesktopOpen ? 'justify-start gap-3' : 'justify-center'}
-               `}
-               title="Menu Builder"
-             >
-               <Layers size={20} className={`shrink-0 ${activeCategory === 'builder' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
-                 Menu Builder
-               </span>
-             </button>
-          </div>
-        </div>
-
-        {/* User Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
-             <div className={`flex items-center gap-3 overflow-hidden ${effectiveDesktopOpen ? '' : 'justify-center'}`}>
-                <div className="h-9 w-9 rounded-full bg-accent-600 flex items-center justify-center text-xs text-white font-medium shrink-0 shadow-sm">
-                    HD
-                </div>
-                <div className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white truncate w-32">Holo Drifter</div>
-                    <div className="text-[10px] text-gray-500 dark:text-neutral-500">Administrator</div>
-                </div>
-             </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
-        {/* Header */}
-        <header className="h-16 border-b border-gray-200 dark:border-neutral-800 bg-white/80 dark:bg-[#1e1e1e]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10 sticky top-0 transition-colors duration-300">
-          <div className="flex items-center gap-4">
-             {/* Mobile Sidebar Toggle */}
-             <button 
-                onClick={() => setSidebarOpen(!isSidebarOpen)} 
-                className="text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white lg:hidden"
-             >
-               <Menu size={20} />
-             </button>
-
-             {/* Desktop Sidebar Toggle */}
-             <button 
-                onClick={() => setDesktopSidebarOpen(!isDesktopSidebarOpen)} 
-                className="text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hidden lg:block"
-                title={isDesktopSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-             >
-               {isDesktopSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
-             </button>
-
-             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-neutral-500">
-               <span className="hidden md:inline">Dashboard</span>
-               <span className="text-gray-300 dark:text-neutral-700">/</span>
-               <span className="text-gray-900 dark:text-white font-medium capitalize">
-                   {activeCategory === 'overview' ? 'Overview' : categoryTitles[activeCategory] || activeCategory + ' Tools'}
-               </span>
-             </div>
-          </div>
-          
-          <button 
-            onClick={toggleTheme}
-            className="p-2 rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </header>
-
-        {/* Scrollable Content Area */}
+        <Header 
+          isSidebarOpen={isSidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          isDesktopSidebarOpen={isDesktopSidebarOpen}
+          setDesktopSidebarOpen={setDesktopSidebarOpen}
+          activeCategory={activeCategory}
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar">
            {renderContent()}
         </div>
