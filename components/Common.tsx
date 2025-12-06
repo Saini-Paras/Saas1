@@ -13,7 +13,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "danger" | "ghost" | "outline";
 }
 
-export const Button: React.FC<ButtonProps> = ({ children, className = "", variant = "primary", ...props }) => {
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ children, className = "", variant = "primary", ...props }, ref) => {
   const baseStyle = "px-4 py-2.5 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98] border";
   const variants = {
     primary: "bg-[#146ef5] hover:bg-[#115ac9] text-white border-transparent disabled:opacity-50 disabled:cursor-not-allowed",
@@ -24,11 +24,12 @@ export const Button: React.FC<ButtonProps> = ({ children, className = "", varian
   };
 
   return (
-    <button className={`${baseStyle} ${variants[variant]} ${className}`} {...props}>
+    <button ref={ref} className={`${baseStyle} ${variants[variant]} ${className}`} {...props}>
       {children}
     </button>
   );
-};
+});
+Button.displayName = "Button";
 
 // --- Input ---
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -36,7 +37,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: LucideIcon;
 }
 
-export const Input: React.FC<InputProps> = ({ label, className = "", icon: Icon, ...props }) => (
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, className = "", icon: Icon, ...props }, ref) => (
   <div className={`flex flex-col gap-1.5 w-full ${className}`}>
     {label && <label className="text-[11px] font-semibold text-gray-500 dark:text-neutral-500 uppercase tracking-widest">{label}</label>}
     <div className="relative group">
@@ -46,23 +47,26 @@ export const Input: React.FC<InputProps> = ({ label, className = "", icon: Icon,
         </div>
       )}
       <input
+        ref={ref}
         className={`bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all placeholder:text-gray-400 dark:placeholder:text-neutral-600 w-full ${Icon ? 'pl-10 pr-3' : 'px-3'}`}
         {...props}
       />
     </div>
   </div>
-);
+));
+Input.displayName = "Input";
 
 // --- Select ---
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     label?: string;
 }
 
-export const Select: React.FC<SelectProps> = ({ label, children, className = "", ...props }) => (
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label, children, className = "", ...props }, ref) => (
     <div className={`flex flex-col gap-1.5 w-full ${className}`}>
         {label && <label className="text-[11px] font-semibold text-gray-500 dark:text-neutral-500 uppercase tracking-widest">{label}</label>}
         <div className="relative">
             <select
+                ref={ref}
                 className="bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all w-full appearance-none"
                 {...props}
             >
@@ -75,22 +79,25 @@ export const Select: React.FC<SelectProps> = ({ label, children, className = "",
             </div>
         </div>
     </div>
-);
+));
+Select.displayName = "Select";
 
 // --- TextArea ---
 interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
 }
 
-export const TextArea: React.FC<TextAreaProps> = ({ label, className = "", ...props }) => (
+export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(({ label, className = "", ...props }, ref) => (
   <div className={`flex flex-col gap-1.5 w-full ${className}`}>
     {label && <label className="text-[11px] font-semibold text-gray-500 dark:text-neutral-500 uppercase tracking-widest">{label}</label>}
     <textarea
+      ref={ref}
       className="bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-neutral-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:focus:ring-accent-500 transition-all placeholder:text-gray-400 dark:placeholder:text-neutral-600 resize-y font-mono leading-relaxed"
       {...props}
     />
   </div>
-);
+));
+TextArea.displayName = "TextArea";
 
 // --- FileUpload ---
 interface FileUploadProps {
