@@ -3,6 +3,8 @@
 ## 1. Overview
 Holo's Dashboard is a React-based personal utility application designed for Shopify automation, data processing, and frontend development tasks. It uses a component-based architecture with a shared UI library and serverless API functions.
 
+**Recent Update (Phase 6):** The application has been refactored into a modular architecture to support scalability and easier maintenance.
+
 ## 2. Tech Stack
 - **Framework**: React 19 (Vite)
 - **Language**: TypeScript
@@ -15,20 +17,30 @@ Holo's Dashboard is a React-based personal utility application designed for Shop
 /
 ├── api/                    # Serverless functions (Vercel-compatible)
 │   ├── extract_collections.js
-│   └── import_collections.js
+│   ├── import_collections.js
+│   ├── fetch_collections.js
+│   ├── create_menu.js
+│   └── oauth_exchange.js
+├── config/                 # Configuration Files
+│   └── tools.tsx           # Tool definitions & Category mappings
 ├── components/
+│   ├── layout/             # Layout Components
+│   │   ├── Header.tsx      # Top Navigation
+│   │   └── Sidebar.tsx     # Side Navigation
 │   ├── tools/              # Individual Tool Logic
 │   │   ├── ClassyPrefixer.tsx
 │   │   ├── Extractor.tsx
 │   │   ├── Importer.tsx
 │   │   ├── JsonCreator.tsx
+│   │   ├── MenuBuilder.tsx # Nested Menu Builder
 │   │   ├── RemToPx.tsx
 │   │   ├── ShopifyScraper.tsx
 │   │   └── TagAutomation.tsx
 │   ├── Common.tsx          # Shared UI Kit (Card, Button, Input, etc.)
+│   ├── ToolRenderer.tsx    # Tool Rendering Logic (Switch)
 │   └── Toast.tsx           # Notification System
 ├── doc/                    # Documentation
-├── App.tsx                 # Main Layout, Routing, and State
+├── App.tsx                 # Main Layout Orchestrator
 ├── index.html              # Entry point & Tailwind Config
 ├── types.ts                # TypeScript Interfaces & Tool Definitions
 └── utils.ts                # Helpers (Script loading, Copy to clipboard)
@@ -36,28 +48,26 @@ Holo's Dashboard is a React-based personal utility application designed for Shop
 
 ## 4. Key Architectural Decisions
 
-### A. The "Monolithic" App Component
-`App.tsx` handles the primary layout responsibilities:
-- **State Management**: Manages `activeCategory`, `activeToolId`, `theme`, and `notification` state.
-- **Routing**: Instead of React Router, it uses conditional rendering based on state to switch between the Overview dashboard and specific Tools.
-- **Sidebar & Navigation**: Handles responsiveness (collapsible sidebar) and Category vs. Tool navigation logic.
+### A. Modular "Orchestrator" Pattern
+`App.tsx` has been slimmed down. It now acts as an orchestrator that:
+- Manages Global State (Theme, Active Tool, Sidebar Open/Close).
+- Loads Global Scripts.
+- Composes `Sidebar`, `Header`, and `ToolRenderer`.
 
-### B. Shared Component Library (`Common.tsx`)
-To ensure visual consistency, raw HTML elements are wrapped in `Common.tsx`:
-- All inputs (`Input`, `TextArea`, `Select`) automatically handle Dark/Light mode styling (`bg-[#171717]`, border colors, etc.).
-- `Button` abstracts variants (Primary, Secondary, Ghost).
-- `Card` provides the standard container with borders and padding.
+### B. Configuration-Driven Tools (`config/tools.tsx`)
+Adding a tool no longer requires editing `App.tsx` deeply.
+- **Tools Definition**: An array of `Tool` objects defining ID, Label, Icon, and Category.
+- **Category Titles**: A mapping of category IDs to display titles.
 
-### C. Tool Isolation
-Each tool in `components/tools/` is self-contained.
-- They accept props usually limited to `notify` (for toasts) and `libsLoaded` (if they need global scripts).
-- They manage their own internal state.
-- They do not affect the global app state directly.
+### C. Isolated Tool Components
+Each tool in `components/tools/` remains self-contained.
+- **Menu Builder**: Uses recursive components (`RecursiveMenuItem`) defined *outside* the main component to preserve state during re-renders.
+- **Common Components**: `Input`, `Button`, etc., use `React.forwardRef` to support advanced focus management (e.g., auto-focusing modals).
 
 ### D. Serverless APIs
 The `api/` folder contains Node.js functions intended for Vercel Serverless deployment.
-- These are necessary for operations that require CORS handling or server-side requests (e.g., Shopify API interaction).
-- **Proxying**: The Frontend tools often use `api.allorigins.win` or the internal `api/` folder to bypass CORS when scraping.
+- **Shopify OAuth**: Handles the secure token exchange.
+- **GraphQL Proxying**: Proxies requests to Shopify Admin API to avoid CORS issues on the frontend.
 
 ## 5. Theming System
 - **Strategy**: Tailwind `darkMode: 'class'`.

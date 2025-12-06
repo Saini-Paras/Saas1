@@ -1,6 +1,6 @@
 # Developer Guide: Adding New Features
 
-This guide explains how to add a new tool to Holo's Dashboard.
+This guide explains how to add a new tool to Holo's Dashboard using the new modular architecture.
 
 ## Step 1: Define the Tool ID
 Open `types.ts` and add a unique ID to the `ToolId` type alias.
@@ -39,33 +39,38 @@ export const YourNewTool: React.FC<Props> = ({ notify }) => {
 ```
 
 ## Step 3: Register the Tool Config
-Open `App.tsx`. Locate the `tools` array and add your tool definition.
+Open `config/tools.tsx`. Add your tool definition to the `tools` array.
 
 ```tsx
-// App.tsx
-const tools: Tool[] = [
+// config/tools.tsx
+import { YourIcon } from 'lucide-react';
+
+export const tools: Tool[] = [
   // ... existing tools
   { 
       id: "your-new-tool-id", 
       label: "My New Tool", 
-      icon: <SomeIcon size={18} />, 
+      icon: <YourIcon size={18} />, 
       description: "Description of what it does.",
-      category: "shopify" // or "web"
+      category: "shopify" // or "web" or "builder"
   },
 ];
 ```
 
 ## Step 4: Render the Component
-Still in `App.tsx`, locate the `renderTool` switch statement and add your case.
+Open `components/ToolRenderer.tsx`. Import your component and add it to the switch statement.
 
 ```tsx
-// App.tsx
-const renderTool = (id: ToolId) => {
-    switch(id) {
-        // ... existing cases
-        case 'your-new-tool-id': return <YourNewTool notify={notify} />;
-        default: return null;
-    }
+// components/ToolRenderer.tsx
+import { YourNewTool } from './tools/YourNewTool';
+
+export const ToolRenderer: React.FC<Props> = ({ activeToolId, notify, libsLoaded }) => {
+  // ...
+  switch(activeToolId) {
+      // ... existing cases
+      case 'your-new-tool-id': return <YourNewTool notify={notify} />;
+      default: return <div>Tool not found</div>;
+  }
 };
 ```
 
@@ -74,6 +79,7 @@ const renderTool = (id: ToolId) => {
 2.  **Colors**: Do not hardcode colors if possible. Use Tailwind classes.
     *   Inputs/Dark Backgrounds: `#171717` (mapped in Common).
     *   Accent: `text-accent-600` / `bg-accent-600`.
-3.  **Responsiveness**: 
+3.  **Ref Forwarding**: If your tool needs to focus inputs programmatically, the `Input` component now supports `ref`.
+4.  **Responsiveness**: 
     *   Avoid fixed widths (`w-96`). Use percentages or `w-full`.
     *   For tables, wrap them in a div with `overflow-x-auto`.
