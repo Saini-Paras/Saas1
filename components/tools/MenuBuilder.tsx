@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, Lock, CornerDownRight, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, AlertCircle, ShoppingBag, LogOut, ChevronRight, ChevronDown } from 'lucide-react';
 import { Card, Button, Input } from '../Common';
 import { NotificationType } from '../../types';
 
@@ -240,19 +240,33 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   // --- RECURSIVE COMPONENT ---
   const RecursiveMenuItem = ({ item, level }: { item: MenuItemData; level: number }) => {
       const isSelected = selectedId === item.id;
+      const [isCollapsed, setIsCollapsed] = useState(false);
+      const hasChildren = item.items && item.items.length > 0;
       
       return (
           <div className="relative">
               <div 
                   onClick={(e) => { e.stopPropagation(); setSelectedId(item.id); }}
                   className={`
-                      group flex items-center justify-between p-3 mb-2 rounded-lg cursor-pointer border transition-all
+                      group flex items-center justify-between p-3 mb-2 rounded-lg cursor-pointer border transition-all select-none
                       ${isSelected 
                           ? 'bg-accent-50/50 border-accent-500 shadow-sm ring-1 ring-accent-500 dark:bg-accent-900/20 dark:border-accent-500' 
                           : 'bg-white border-gray-200 hover:border-accent-300 dark:bg-[#1e1e1e] dark:border-neutral-800 dark:hover:border-accent-500/50'}
                   `}
               >
                   <div className="flex items-center gap-3">
+                      {/* Collapse Toggle */}
+                      {hasChildren ? (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
+                            className="text-gray-400 hover:text-accent-500 transition-colors"
+                        >
+                            {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                        </button>
+                      ) : (
+                        <div className="w-[14px]" /> // Spacer
+                      )}
+
                       <div className={`w-8 h-8 rounded-md flex items-center justify-center text-xs shadow-sm
                           ${item.type === 'HTTP' 
                               ? 'bg-gray-800 text-white dark:bg-neutral-700' 
@@ -281,7 +295,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
               </div>
 
               {/* Nested Children */}
-              {(item.items && item.items.length > 0) && (
+              {!isCollapsed && hasChildren && (
                   <div className="pl-6 ml-4 border-l border-gray-200 dark:border-neutral-800 mb-2">
                       {item.items.map(child => (
                           <RecursiveMenuItem key={child.id} item={child} level={level + 1} />
@@ -290,7 +304,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
               )}
               
               {/* Drop Zone Visual */}
-              {isSelected && item.items.length === 0 && (
+              {!isCollapsed && isSelected && !hasChildren && (
                   <div className="pl-6 ml-4 border-l border-dashed border-accent-200 dark:border-accent-900 mb-2 py-1">
                       <div className="text-xs text-accent-500 dark:text-accent-400 px-2 flex items-center gap-2 opacity-80">
                           <CornerDownRight size={14} />
@@ -306,7 +320,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   if (!authState.isAuthenticated) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[500px] animate-in fade-in slide-in-from-bottom-4">
-            <Card className="w-full max-w-md p-8 border-t-4 border-t-accent-500">
+            <Card className="w-full p-8 border-t-4 border-t-accent-500">
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 bg-accent-50 dark:bg-accent-900/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <ShoppingBag size={32} className="text-accent-600 dark:text-accent-500" />
@@ -354,20 +368,33 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   const filteredCollections = collections.filter(c => c.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
-      <div className="h-[calc(100vh-200px)] flex flex-col md:flex-row gap-6 animate-in fade-in">
+      <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6 animate-in fade-in pb-6">
           {/* Left Panel: Collections */}
-          <Card className="w-full md:w-80 flex flex-col p-0 overflow-hidden shrink-0">
+          <Card className="w-full md:w-80 flex flex-col p-0 overflow-hidden shrink-0 h-80 md:h-full">
               <div className="p-4 border-b border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-[#1e1e1e]">
-                  <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-wider">1. Select Collection</h2>
-                      <button onClick={logout} className="text-xs text-red-500 hover:underline">Disconnect</button>
+                  <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-2.5">
+                         <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-md flex items-center justify-center text-green-700 dark:text-green-400 shrink-0">
+                            <ShoppingBag size={16} />
+                         </div>
+                         <div className="min-w-0">
+                            <h2 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Deep Menu Builder</h2>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                <span className="text-[10px] text-gray-500 dark:text-neutral-500 truncate max-w-[120px]" title={authState.shop}>{authState.shop}</span>
+                            </div>
+                         </div>
+                      </div>
+                      <Button variant="secondary" onClick={logout} className="h-7 px-2 text-xs gap-1.5 shrink-0 bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700">
+                         <LogOut size={12} /> Logout
+                      </Button>
                   </div>
                   <Input 
                       placeholder="Search collections..." 
                       value={search} 
                       onChange={e => setSearch(e.target.value)}
                       icon={Search}
-                      className="bg-white"
+                      className="bg-transparent dark:bg-transparent" // Fix background issue
                   />
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
@@ -393,21 +420,21 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
           </Card>
 
           {/* Right Panel: Builder Tree */}
-          <div className="flex-1 flex flex-col gap-4 min-h-0">
+          <div className="flex-1 flex flex-col gap-4 min-h-0 h-full">
                {/* Toolbar */}
               <Card className="p-4 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
                   <div>
                       <h2 className="text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-wider mb-1">2. Menu Structure</h2>
                       <p className="text-xs text-gray-400">Select an item below to nest collections under it.</p>
                   </div>
-                  <div className="flex gap-3">
-                      <Button variant="secondary" onClick={addGroup} className="text-xs h-9">
+                  <div className="flex gap-3 w-full md:w-auto">
+                      <Button variant="secondary" onClick={addGroup} className="text-xs h-9 flex-1 md:flex-none">
                           <Layers size={14} /> Add Main Group
                       </Button>
                       <Button 
                           onClick={pushToShopify} 
                           disabled={pushStatus === 'pushing' || menuStructure.length === 0}
-                          className={`text-xs h-9 min-w-[140px] ${pushStatus === 'success' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                          className={`text-xs h-9 min-w-[140px] flex-1 md:flex-none ${pushStatus === 'success' ? 'bg-green-600 hover:bg-green-700' : ''}`}
                       >
                           {pushStatus === 'pushing' ? 'Pushing...' : pushStatus === 'success' ? 'Created!' : 'Push to Shopify'}
                           {pushStatus === 'success' ? <Check size={14} /> : <CloudUpload size={14} />}

@@ -16,6 +16,8 @@ import {
   Scaling,
   FileArchive,
   Layers,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { loadScript } from './utils';
 import { Tool, ToolId, Notification, ToolCategory } from './types';
@@ -37,6 +39,9 @@ const App = () => {
   const [activeToolId, setActiveToolId] = useState<ToolId | null>(null);
   
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isDesktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+  const [isSidebarHovered, setSidebarHovered] = useState(false);
+
   const [libsLoaded, setLibsLoaded] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   
@@ -262,7 +267,7 @@ const App = () => {
                 
                 {/* Tabs - Only show if there are multiple tools in category */}
                 {categoryTools.length > 1 && (
-                    <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar max-w-full w-full lg:w-auto shrink-0">
+                    <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar max-w-full w-full shrink-0">
                         {categoryTools.map(tool => (
                             <button
                                 key={tool.id}
@@ -289,6 +294,12 @@ const App = () => {
     );
   };
 
+  // Determine effective sidebar open state for desktop
+  // The sidebar is open on desktop if:
+  // 1. The desktop toggle is ON (isDesktopSidebarOpen)
+  // 2. OR the mouse is hovering over it (isSidebarHovered)
+  const effectiveDesktopOpen = isDesktopSidebarOpen || isSidebarHovered;
+
   return (
     <div className="h-screen w-full flex bg-gray-50 dark:bg-[#141414] overflow-hidden transition-colors duration-300 font-sans">
       
@@ -311,20 +322,25 @@ const App = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 h-full
-        bg-white dark:bg-[#1e1e1e] border-r border-gray-200 dark:border-neutral-800
-        transition-all duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0 lg:w-[72px] lg:hover:w-64'}
-        flex flex-col group/sidebar z-50 shadow-xl lg:shadow-none
-      `}>
+      <aside 
+        onMouseEnter={() => setSidebarHovered(true)}
+        onMouseLeave={() => setSidebarHovered(false)}
+        className={`
+          fixed lg:static inset-y-0 left-0 z-50 h-full
+          bg-white dark:bg-[#1e1e1e] border-r border-gray-200 dark:border-neutral-800
+          transition-all duration-300 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'}
+          ${effectiveDesktopOpen ? 'lg:w-64' : 'lg:w-[72px]'}
+          flex flex-col group/sidebar z-50 shadow-xl lg:shadow-none
+        `}
+      >
         {/* Sidebar Header */}
         <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-neutral-800 overflow-hidden whitespace-nowrap shrink-0">
           <div className="flex items-center gap-3 font-semibold text-gray-900 dark:text-white tracking-tight">
             <div className="w-8 h-8 bg-accent-600 rounded-md flex items-center justify-center shrink-0 shadow-sm">
               <Sparkles size={16} className="text-white fill-current" />
             </div>
-            <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'lg:opacity-0 lg:group-hover/sidebar:opacity-100'}`}>
+            <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
                Holo's DB
             </span>
           </div>
@@ -344,14 +360,14 @@ const App = () => {
                title="Dashboard"
              >
                <LayoutDashboard size={20} className={`shrink-0 ${activeCategory === 'overview' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'lg:opacity-0 lg:group-hover/sidebar:opacity-100'}`}>
+               <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
                  Overview
                </span>
              </button>
           </div>
 
           <div className="space-y-1">
-             <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'lg:opacity-0 lg:group-hover/sidebar:opacity-100'}`}>
+             <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
                 Workspaces
              </div>
 
@@ -362,9 +378,10 @@ const App = () => {
                    ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
                    : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
                `}
+               title="Shopify Tools"
              >
                <ShoppingBag size={20} className={`shrink-0 ${activeCategory === 'shopify' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'lg:opacity-0 lg:group-hover/sidebar:opacity-100'}`}>
+               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
                  Shopify Tools
                </span>
              </button>
@@ -376,9 +393,10 @@ const App = () => {
                    ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
                    : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
                `}
+               title="Web Tools"
              >
                <Code2 size={20} className={`shrink-0 ${activeCategory === 'web' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'lg:opacity-0 lg:group-hover/sidebar:opacity-100'}`}>
+               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
                  Web Tools
                </span>
              </button>
@@ -390,9 +408,10 @@ const App = () => {
                    ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
                    : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
                `}
+               title="Menu Builder"
              >
                <Layers size={20} className={`shrink-0 ${activeCategory === 'builder' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'lg:opacity-0 lg:group-hover/sidebar:opacity-100'}`}>
+               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
                  Menu Builder
                </span>
              </button>
@@ -405,7 +424,7 @@ const App = () => {
                 <div className="h-9 w-9 rounded-full bg-accent-600 flex items-center justify-center text-xs text-white font-medium shrink-0 shadow-sm">
                     HD
                 </div>
-                <div className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'lg:opacity-0 lg:group-hover/sidebar:opacity-100'}`}>
+                <div className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
                     <div className="text-sm font-medium text-gray-900 dark:text-white truncate w-32">Holo Drifter</div>
                     <div className="text-[10px] text-gray-500 dark:text-neutral-500">Administrator</div>
                 </div>
@@ -418,12 +437,23 @@ const App = () => {
         {/* Header */}
         <header className="h-16 border-b border-gray-200 dark:border-neutral-800 bg-white/80 dark:bg-[#1e1e1e]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10 sticky top-0 transition-colors duration-300">
           <div className="flex items-center gap-4">
+             {/* Mobile Sidebar Toggle */}
              <button 
                 onClick={() => setSidebarOpen(!isSidebarOpen)} 
                 className="text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white lg:hidden"
              >
                <Menu size={20} />
              </button>
+
+             {/* Desktop Sidebar Toggle */}
+             <button 
+                onClick={() => setDesktopSidebarOpen(!isDesktopSidebarOpen)} 
+                className="text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hidden lg:block"
+                title={isDesktopSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+             >
+               {isDesktopSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+             </button>
+
              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-neutral-500">
                <span className="hidden md:inline">Dashboard</span>
                <span className="text-gray-300 dark:text-neutral-700">/</span>
