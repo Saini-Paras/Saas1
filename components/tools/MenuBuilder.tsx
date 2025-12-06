@@ -22,6 +22,100 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
+// --- RECURSIVE COMPONENT (Defined Outside to preserve state) ---
+interface RecursiveItemProps {
+  item: MenuItemData;
+  level: number;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onDelete: (e: React.MouseEvent, id: string) => void;
+}
+
+const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selectedId, onSelect, onDelete }) => {
+  const isSelected = selectedId === item.id;
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const hasChildren = item.items && item.items.length > 0;
+  
+  return (
+      <div className="relative">
+          <div 
+              onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
+              className={`
+                  group flex items-center justify-between p-3 mb-2 rounded-lg cursor-pointer border transition-all select-none
+                  ${isSelected 
+                      ? 'bg-accent-50/50 border-accent-500 shadow-sm ring-1 ring-accent-500 dark:bg-accent-900/20 dark:border-accent-500' 
+                      : 'bg-white border-gray-200 hover:border-accent-300 dark:bg-[#1e1e1e] dark:border-neutral-800 dark:hover:border-accent-500/50'}
+              `}
+          >
+              <div className="flex items-center gap-3">
+                  {/* Collapse Toggle */}
+                  {hasChildren ? (
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
+                        className="text-gray-400 hover:text-accent-500 transition-colors p-1"
+                    >
+                        {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                  ) : (
+                    <div className="w-[22px]" /> // Spacer
+                  )}
+
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center text-xs shadow-sm shrink-0
+                      ${item.type === 'HTTP' 
+                          ? 'bg-gray-800 text-white dark:bg-neutral-700' 
+                          : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}
+                  >
+                      {item.type === 'HTTP' ? <Layers size={14} /> : <Tag size={14} />}
+                  </div>
+                  <div className="min-w-0">
+                      <p className={`font-medium text-sm truncate ${isSelected ? 'text-accent-700 dark:text-accent-400' : 'text-gray-700 dark:text-neutral-200'}`}>
+                          {item.title}
+                      </p>
+                  </div>
+              </div>
+              
+              <div className="flex items-center gap-2 pl-2">
+                  <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mr-2 hidden sm:block whitespace-nowrap">
+                      {level === 0 ? 'Header' : `Level ${level}`}
+                  </span>
+                  <button 
+                      onClick={(e) => onDelete(e, item.id)} 
+                      className="h-7 w-7 flex items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition shrink-0"
+                  >
+                      <Trash2 size={14} />
+                  </button>
+              </div>
+          </div>
+
+          {/* Nested Children */}
+          {!isCollapsed && hasChildren && (
+              <div className="pl-6 ml-4 border-l border-gray-200 dark:border-neutral-800 mb-2">
+                  {item.items.map(child => (
+                      <RecursiveMenuItem 
+                        key={child.id} 
+                        item={child} 
+                        level={level + 1} 
+                        selectedId={selectedId}
+                        onSelect={onSelect}
+                        onDelete={onDelete}
+                      />
+                  ))}
+              </div>
+          )}
+          
+          {/* Drop Zone Visual */}
+          {!isCollapsed && isSelected && !hasChildren && (
+              <div className="pl-6 ml-4 border-l border-dashed border-accent-200 dark:border-accent-900 mb-2 py-1">
+                  <div className="text-xs text-accent-500 dark:text-accent-400 px-2 flex items-center gap-2 opacity-80">
+                      <CornerDownRight size={14} />
+                      Add sub-items from the list...
+                  </div>
+              </div>
+          )}
+      </div>
+  );
+};
+
 export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   // --- STATE ---
   const [authState, setAuthState] = useState<AuthState>({ shop: '', token: '', isAuthenticated: false });
@@ -42,17 +136,14 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
       
-      // 1. Check for local storage auth
       const storedAuth = localStorage.getItem('shopify_menu_auth');
       const storedCreds = localStorage.getItem('shopify_menu_creds');
 
       if (storedCreds) setLoginForm(JSON.parse(storedCreds));
 
       if (code && storedCreds) {
-          // 2. Handle OAuth Callback
           handleOAuthCallback(code, JSON.parse(storedCreds));
       } else if (storedAuth) {
-          // 3. Restore session
           const parsed = JSON.parse(storedAuth);
           setAuthState({ ...parsed, isAuthenticated: true });
           fetchCollections(parsed.shop, parsed.token);
@@ -69,13 +160,11 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       let shopUrl = shop.replace('https://', '').replace(/\/$/, '');
       if (!shopUrl.includes('.myshopify.com')) shopUrl += '.myshopify.com';
 
-      // Save credentials for the callback
       localStorage.setItem('shopify_menu_creds', JSON.stringify({ shop: shopUrl, clientId, clientSecret }));
       
       const redirectUri = window.location.origin;
       const scopes = 'read_products,write_content,read_content';
       
-      // Redirect to Shopify
       window.location.href = `https://${shopUrl}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${redirectUri}`;
   };
 
@@ -95,10 +184,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
               const newAuth = { shop, token: data.access_token };
               setAuthState({ ...newAuth, isAuthenticated: true });
               localStorage.setItem('shopify_menu_auth', JSON.stringify(newAuth));
-              
-              // Clean URL
               window.history.replaceState({}, document.title, window.location.pathname);
-              
               notify("Authentication successful!", "success");
               fetchCollections(shop, data.access_token);
           } else {
@@ -124,10 +210,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       try {
           const res = await fetch('/api/fetch_collections', {
               method: 'POST',
-              headers: { 
-                  'x-shopify-shop': shop, 
-                  'x-shopify-token': token 
-              }
+              headers: { 'x-shopify-shop': shop, 'x-shopify-token': token }
           });
           const data = await res.json();
           if (data.error) throw new Error(data.error);
@@ -157,8 +240,6 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
               })
           });
           const data = await res.json();
-          
-          // Handle Errors
           const errors = data.menuCreate ? data.menuCreate.userErrors : data.userErrors;
           if (errors && errors.length > 0) {
               notify(`Error: ${errors[0].message}`, "error");
@@ -181,7 +262,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
               return action(item);
           }
           if (item.items && item.items.length > 0) {
-              // @ts-ignore - TS struggles with recursive map returns sometimes
+              // @ts-ignore
               return { ...item, items: modifyItem(item.items, targetId, action) };
           }
           return item;
@@ -226,7 +307,6 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
 
   const deleteItem = (e: React.MouseEvent, targetId: string) => {
       e.stopPropagation();
-      
       const recursiveDelete = (nodes: MenuItemData[]): MenuItemData[] => {
           return nodes.filter(node => node.id !== targetId).map(node => ({
               ...node,
@@ -235,85 +315,6 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       };
       setMenuStructure(recursiveDelete(menuStructure));
       if (selectedId === targetId) setSelectedId(null);
-  };
-
-  // --- RECURSIVE COMPONENT ---
-  const RecursiveMenuItem = ({ item, level }: { item: MenuItemData; level: number }) => {
-      const isSelected = selectedId === item.id;
-      const [isCollapsed, setIsCollapsed] = useState(false);
-      const hasChildren = item.items && item.items.length > 0;
-      
-      return (
-          <div className="relative">
-              <div 
-                  onClick={(e) => { e.stopPropagation(); setSelectedId(item.id); }}
-                  className={`
-                      group flex items-center justify-between p-3 mb-2 rounded-lg cursor-pointer border transition-all select-none
-                      ${isSelected 
-                          ? 'bg-accent-50/50 border-accent-500 shadow-sm ring-1 ring-accent-500 dark:bg-accent-900/20 dark:border-accent-500' 
-                          : 'bg-white border-gray-200 hover:border-accent-300 dark:bg-[#1e1e1e] dark:border-neutral-800 dark:hover:border-accent-500/50'}
-                  `}
-              >
-                  <div className="flex items-center gap-3">
-                      {/* Collapse Toggle */}
-                      {hasChildren ? (
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
-                            className="text-gray-400 hover:text-accent-500 transition-colors"
-                        >
-                            {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
-                        </button>
-                      ) : (
-                        <div className="w-[14px]" /> // Spacer
-                      )}
-
-                      <div className={`w-8 h-8 rounded-md flex items-center justify-center text-xs shadow-sm
-                          ${item.type === 'HTTP' 
-                              ? 'bg-gray-800 text-white dark:bg-neutral-700' 
-                              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}
-                      >
-                          {item.type === 'HTTP' ? <Layers size={14} /> : <Tag size={14} />}
-                      </div>
-                      <div>
-                          <p className={`font-medium text-sm ${isSelected ? 'text-accent-700 dark:text-accent-400' : 'text-gray-700 dark:text-neutral-200'}`}>
-                              {item.title}
-                          </p>
-                      </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mr-2 hidden sm:block">
-                          {level === 0 ? 'Header' : `Level ${level}`}
-                      </span>
-                      <button 
-                          onClick={(e) => deleteItem(e, item.id)} 
-                          className="h-7 w-7 flex items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition"
-                      >
-                          <Trash2 size={14} />
-                      </button>
-                  </div>
-              </div>
-
-              {/* Nested Children */}
-              {!isCollapsed && hasChildren && (
-                  <div className="pl-6 ml-4 border-l border-gray-200 dark:border-neutral-800 mb-2">
-                      {item.items.map(child => (
-                          <RecursiveMenuItem key={child.id} item={child} level={level + 1} />
-                      ))}
-                  </div>
-              )}
-              
-              {/* Drop Zone Visual */}
-              {!isCollapsed && isSelected && !hasChildren && (
-                  <div className="pl-6 ml-4 border-l border-dashed border-accent-200 dark:border-accent-900 mb-2 py-1">
-                      <div className="text-xs text-accent-500 dark:text-accent-400 px-2 flex items-center gap-2 opacity-80">
-                          <CornerDownRight size={14} />
-                          Add sub-items from the list...
-                      </div>
-                  </div>
-              )}
-          </div>
-      );
   };
 
   // --- RENDER LOGIN ---
@@ -373,19 +374,19 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
           <Card className="w-full md:w-80 flex flex-col p-0 overflow-hidden shrink-0 h-80 md:h-full">
               <div className="p-4 border-b border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-[#1e1e1e]">
                   <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
                          <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-md flex items-center justify-center text-green-700 dark:text-green-400 shrink-0">
                             <ShoppingBag size={16} />
                          </div>
-                         <div className="min-w-0">
-                            <h2 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Deep Menu Builder</h2>
+                         <div className="min-w-0 overflow-hidden">
+                            <h2 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider truncate">Deep Menu Builder</h2>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                                <span className="text-[10px] text-gray-500 dark:text-neutral-500 truncate max-w-[120px]" title={authState.shop}>{authState.shop}</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shrink-0"></div>
+                                <span className="text-[10px] text-gray-500 dark:text-neutral-500 truncate block" title={authState.shop}>{authState.shop}</span>
                             </div>
                          </div>
                       </div>
-                      <Button variant="secondary" onClick={logout} className="h-7 px-2 text-xs gap-1.5 shrink-0 bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700">
+                      <Button variant="secondary" onClick={logout} className="h-7 px-2 text-xs gap-1.5 shrink-0 bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 ml-2">
                          <LogOut size={12} /> Logout
                       </Button>
                   </div>
@@ -394,7 +395,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                       value={search} 
                       onChange={e => setSearch(e.target.value)}
                       icon={Search}
-                      className="bg-transparent dark:bg-transparent" // Fix background issue
+                      className="bg-transparent dark:bg-transparent"
                   />
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
@@ -453,7 +454,14 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                   ) : (
                       <div className="space-y-4 max-w-4xl mx-auto">
                           {menuStructure.map((item) => (
-                              <RecursiveMenuItem key={item.id} item={item} level={0} />
+                              <RecursiveMenuItem 
+                                key={item.id} 
+                                item={item} 
+                                level={0} 
+                                selectedId={selectedId}
+                                onSelect={(id) => setSelectedId(id)}
+                                onDelete={deleteItem}
+                              />
                           ))}
                       </div>
                   )}
