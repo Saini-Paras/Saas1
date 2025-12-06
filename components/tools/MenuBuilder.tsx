@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, AlertCircle, ShoppingBag, LogOut, ChevronRight, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, AlertCircle, ShoppingBag, LogOut, ChevronRight, ChevronDown, X } from 'lucide-react';
 import { Card, Button, Input } from '../Common';
 import { NotificationType } from '../../types';
 
@@ -22,7 +22,7 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-// --- RECURSIVE COMPONENT (Defined Outside to preserve state) ---
+// --- RECURSIVE COMPONENT ---
 interface RecursiveItemProps {
   item: MenuItemData;
   level: number;
@@ -117,25 +117,25 @@ const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selected
 };
 
 export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
-  // --- STATE ---
   const [authState, setAuthState] = useState<AuthState>({ shop: '', token: '', isAuthenticated: false });
   const [loginForm, setLoginForm] = useState({ shop: '', clientId: '', clientSecret: '' });
   const [collections, setCollections] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   
-  // The Menu Tree
   const [menuStructure, setMenuStructure] = useState<MenuItemData[]>([]);
-  
-  // Active Selection
   const [selectedId, setSelectedId] = useState<string | null>(null); 
   const [pushStatus, setPushStatus] = useState<'idle' | 'pushing' | 'success' | 'error'>('idle');
+
+  // Modal State
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const groupInputRef = useRef<HTMLInputElement>(null);
 
   // --- INITIALIZATION ---
   useEffect(() => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
-      
       const storedAuth = localStorage.getItem('shopify_menu_auth');
       const storedCreds = localStorage.getItem('shopify_menu_creds');
 
@@ -150,6 +150,13 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       }
   }, []);
 
+  // --- FOCUS MODAL INPUT ---
+  useEffect(() => {
+      if (isGroupModalOpen && groupInputRef.current) {
+          setTimeout(() => groupInputRef.current?.focus(), 50);
+      }
+  }, [isGroupModalOpen]);
+
   // --- AUTH LOGIC ---
   const initiateLogin = () => {
       const { shop, clientId, clientSecret } = loginForm;
@@ -161,17 +168,14 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       if (!shopUrl.includes('.myshopify.com')) shopUrl += '.myshopify.com';
 
       localStorage.setItem('shopify_menu_creds', JSON.stringify({ shop: shopUrl, clientId, clientSecret }));
-      
       const redirectUri = window.location.origin;
       const scopes = 'read_products,write_content,read_content';
-      
       window.location.href = `https://${shopUrl}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${redirectUri}`;
   };
 
   const handleOAuthCallback = async (code: string, creds: any) => {
       setLoading(true);
       const { shop, clientId, clientSecret } = creds;
-
       try {
           const res = await fetch('/api/oauth_exchange', {
               method: 'POST',
@@ -179,7 +183,6 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
               body: JSON.stringify({ shop, client_id: clientId, client_secret: clientSecret, code })
           });
           const data = await res.json();
-          
           if (data.access_token) {
               const newAuth = { shop, token: data.access_token };
               setAuthState({ ...newAuth, isAuthenticated: true });
@@ -269,18 +272,32 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       }).filter((item): item is MenuItemData => item !== null);
   };
 
-  const addGroup = () => {
-      const name = prompt("Enter Menu Group Name (e.g. 'Men', 'Women'):");
-      if (!name) return;
+  const openGroupModal = () => {
+      setNewGroupName("");
+      setIsGroupModalOpen(true);
+  };
+
+  const confirmAddGroup = () => {
+      if (!newGroupName.trim()) return;
+      
       const newId = Date.now().toString();
       setMenuStructure([...menuStructure, {
           id: newId,
-          title: name,
+          title: newGroupName,
           type: 'HTTP',
           url: '#',
           items: []
       }]);
       setSelectedId(newId);
+      setIsGroupModalOpen(false);
+  };
+
+  const handleGroupInputKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+          confirmAddGroup();
+      } else if (e.key === 'Escape') {
+          setIsGroupModalOpen(false);
+      }
   };
 
   const addCollectionToSelection = (collection: any) => {
@@ -369,7 +386,35 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   const filteredCollections = collections.filter(c => c.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
-      <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6 animate-in fade-in pb-6">
+      <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6 animate-in fade-in pb-6 relative">
+          
+          {/* Group Name Modal Overlay */}
+          {isGroupModalOpen && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg">
+                  <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-lg shadow-xl w-full max-w-sm border border-gray-200 dark:border-neutral-800 animate-in zoom-in-95 duration-200">
+                      <div className="flex justify-between items-center mb-4">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">Add Menu Group</h3>
+                          <button onClick={() => setIsGroupModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                              <X size={18} />
+                          </button>
+                      </div>
+                      <Input 
+                          ref={groupInputRef}
+                          value={newGroupName}
+                          onChange={(e) => setNewGroupName(e.target.value)}
+                          onKeyDown={handleGroupInputKeyDown}
+                          placeholder="e.g. Men, Summer Sale"
+                          label="Group Name"
+                          className="mb-4"
+                      />
+                      <div className="flex gap-3 justify-end">
+                          <Button variant="ghost" onClick={() => setIsGroupModalOpen(false)}>Cancel</Button>
+                          <Button onClick={confirmAddGroup}>Create Group</Button>
+                      </div>
+                  </div>
+              </div>
+          )}
+
           {/* Left Panel: Collections */}
           <Card className="w-full md:w-80 flex flex-col p-0 overflow-hidden shrink-0 h-80 md:h-full">
               <div className="p-4 border-b border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-[#1e1e1e]">
@@ -429,7 +474,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                       <p className="text-xs text-gray-400">Select an item below to nest collections under it.</p>
                   </div>
                   <div className="flex gap-3 w-full md:w-auto">
-                      <Button variant="secondary" onClick={addGroup} className="text-xs h-9 flex-1 md:flex-none">
+                      <Button variant="secondary" onClick={openGroupModal} className="text-xs h-9 flex-1 md:flex-none">
                           <Layers size={14} /> Add Main Group
                       </Button>
                       <Button 

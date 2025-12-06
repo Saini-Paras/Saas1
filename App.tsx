@@ -78,7 +78,6 @@ const App = () => {
     const link = (document.querySelector("link[rel*='icon']") as HTMLLinkElement) || document.createElement('link');
     link.type = 'image/svg+xml';
     link.rel = 'shortcut icon';
-    // Use a terminal/command prompt style icon
     link.href = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${theme === 'dark' ? 'white' : 'black'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>`;
     document.getElementsByTagName('head')[0].appendChild(link);
   }, [theme]);
@@ -183,11 +182,9 @@ const App = () => {
 
   const handleCategorySelect = (category: ToolCategory) => {
       setActiveCategory(category);
-      // For single tool categories (like builder), auto-select the tool
       if (category === 'builder') {
           setActiveToolId('menu-builder');
       } 
-      // If switching to a tool category, select the first tool by default if none selected
       else if (category !== 'overview') {
           const firstTool = tools.find(t => t.category === category);
           if (firstTool && (!activeToolId || tools.find(t => t.id === activeToolId)?.category !== category)) {
@@ -198,7 +195,6 @@ const App = () => {
       }
   };
 
-  // --- Content Renderers ---
   const renderTool = (id: ToolId) => {
       switch(id) {
           case 'tag-automation': return <TagAutomationTool libsLoaded={libsLoaded} notify={notify} />;
@@ -248,7 +244,6 @@ const App = () => {
         );
     }
 
-    // Category View (Tabs)
     const categoryTools = tools.filter(t => t.category === activeCategory);
     
     return (
@@ -265,7 +260,6 @@ const App = () => {
                     </p>
                 </div>
                 
-                {/* Tabs - Only show if there are multiple tools in category */}
                 {categoryTools.length > 1 && (
                     <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar max-w-full w-full shrink-0">
                         {categoryTools.map(tool => (
@@ -294,10 +288,6 @@ const App = () => {
     );
   };
 
-  // Determine effective sidebar open state for desktop
-  // The sidebar is open on desktop if:
-  // 1. The desktop toggle is ON (isDesktopSidebarOpen)
-  // 2. OR the mouse is hovering over it (isSidebarHovered)
   const effectiveDesktopOpen = isDesktopSidebarOpen || isSidebarHovered;
 
   return (
@@ -340,7 +330,7 @@ const App = () => {
             <div className="w-8 h-8 bg-accent-600 rounded-md flex items-center justify-center shrink-0 shadow-sm">
               <Sparkles size={16} className="text-white fill-current" />
             </div>
-            <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
+            <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden')}`}>
                Holo's DB
             </span>
           </div>
@@ -352,66 +342,70 @@ const App = () => {
           <div className="space-y-1">
              <button
                onClick={() => handleCategorySelect('overview')}
-               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
+               className={`w-full flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
                  ${activeCategory === 'overview' 
                    ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
                    : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
+                 ${effectiveDesktopOpen ? 'justify-start gap-3' : 'justify-center'}
                `}
                title="Dashboard"
              >
                <LayoutDashboard size={20} className={`shrink-0 ${activeCategory === 'overview' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
+               <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
                  Overview
                </span>
              </button>
           </div>
 
           <div className="space-y-1">
-             <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
+             <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden')}`}>
                 Workspaces
              </div>
 
              <button
                onClick={() => handleCategorySelect('shopify')}
-               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
+               className={`w-full flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
                  ${activeCategory === 'shopify' 
                    ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
                    : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
+                 ${effectiveDesktopOpen ? 'justify-start gap-3' : 'justify-center'}
                `}
                title="Shopify Tools"
              >
                <ShoppingBag size={20} className={`shrink-0 ${activeCategory === 'shopify' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
+               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
                  Shopify Tools
                </span>
              </button>
 
              <button
                onClick={() => handleCategorySelect('web')}
-               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
+               className={`w-full flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
                  ${activeCategory === 'web' 
                    ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
                    : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
+                 ${effectiveDesktopOpen ? 'justify-start gap-3' : 'justify-center'}
                `}
                title="Web Tools"
              >
                <Code2 size={20} className={`shrink-0 ${activeCategory === 'web' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
+               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
                  Web Tools
                </span>
              </button>
 
              <button
                onClick={() => handleCategorySelect('builder')}
-               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
+               className={`w-full flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 border border-transparent
                  ${activeCategory === 'builder' 
                    ? 'bg-gray-100 dark:bg-[#2a2a2a] text-accent-600 dark:text-white border-gray-200 dark:border-neutral-700' 
                    : 'text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#252525]'}
+                 ${effectiveDesktopOpen ? 'justify-start gap-3' : 'justify-center'}
                `}
                title="Menu Builder"
              >
                <Layers size={20} className={`shrink-0 ${activeCategory === 'builder' ? 'text-accent-600 dark:text-white' : ''}`} />
-               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
+               <span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
                  Menu Builder
                </span>
              </button>
@@ -420,11 +414,11 @@ const App = () => {
 
         {/* User Footer */}
         <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
-             <div className="flex items-center gap-3 overflow-hidden">
+             <div className={`flex items-center gap-3 overflow-hidden ${effectiveDesktopOpen ? '' : 'justify-center'}`}>
                 <div className="h-9 w-9 rounded-full bg-accent-600 flex items-center justify-center text-xs text-white font-medium shrink-0 shadow-sm">
                     HD
                 </div>
-                <div className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0')}`}>
+                <div className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
                     <div className="text-sm font-medium text-gray-900 dark:text-white truncate w-32">Holo Drifter</div>
                     <div className="text-[10px] text-gray-500 dark:text-neutral-500">Administrator</div>
                 </div>
