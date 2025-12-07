@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, AlertCircle, ShoppingBag, LogOut, ChevronRight, ChevronDown, X } from 'lucide-react';
+import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, AlertCircle, ShoppingBag, LogOut, ChevronRight, ChevronDown, X, Edit2 } from 'lucide-react';
 import { Card, Button, Input } from '../Common';
 import { NotificationType } from '../../types';
 
@@ -29,9 +29,10 @@ interface RecursiveItemProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onDelete: (e: React.MouseEvent, id: string) => void;
+  onEdit: (e: React.MouseEvent, id: string, title: string) => void;
 }
 
-const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selectedId, onSelect, onDelete }) => {
+const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selectedId, onSelect, onDelete, onEdit }) => {
   const isSelected = selectedId === item.id;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const hasChildren = item.items && item.items.length > 0;
@@ -47,17 +48,17 @@ const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selected
                       : 'bg-white border-gray-200 hover:border-accent-300 dark:bg-[#1e1e1e] dark:border-neutral-800 dark:hover:border-accent-500/50'}
               `}
           >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 overflow-hidden">
                   {/* Collapse Toggle */}
                   {hasChildren ? (
                     <button 
                         onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
-                        className="text-gray-400 hover:text-accent-500 transition-colors p-1"
+                        className="text-gray-400 hover:text-accent-500 transition-colors p-1 shrink-0"
                     >
                         {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                     </button>
                   ) : (
-                    <div className="w-[22px]" /> // Spacer
+                    <div className="w-[22px] shrink-0" /> // Spacer
                   )}
 
                   <div className={`w-8 h-8 rounded-md flex items-center justify-center text-xs shadow-sm shrink-0
@@ -74,15 +75,23 @@ const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selected
                   </div>
               </div>
               
-              <div className="flex items-center gap-2 pl-2">
+              <div className="flex items-center gap-1 pl-2 shrink-0">
                   <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mr-2 hidden sm:block whitespace-nowrap">
                       {level === 0 ? 'Header' : `Level ${level}`}
                   </span>
                   <button 
+                      onClick={(e) => onEdit(e, item.id, item.title)} 
+                      className="h-7 w-7 flex items-center justify-center rounded text-gray-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/30 dark:hover:text-blue-400 transition shrink-0"
+                      title="Rename Label"
+                  >
+                      <Edit2 size={12} />
+                  </button>
+                  <button 
                       onClick={(e) => onDelete(e, item.id)} 
                       className="h-7 w-7 flex items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition shrink-0"
+                      title="Delete Item"
                   >
-                      <Trash2 size={14} />
+                      <Trash2 size={12} />
                   </button>
               </div>
           </div>
@@ -98,6 +107,7 @@ const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selected
                         selectedId={selectedId}
                         onSelect={onSelect}
                         onDelete={onDelete}
+                        onEdit={onEdit}
                       />
                   ))}
               </div>
@@ -128,9 +138,18 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   const [pushStatus, setPushStatus] = useState<'idle' | 'pushing' | 'success' | 'error'>('idle');
 
   // Modal State
-  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
-  const [newGroupName, setNewGroupName] = useState("");
-  const groupInputRef = useRef<HTMLInputElement>(null);
+  const [modalConfig, setModalConfig] = useState<{
+      isOpen: boolean;
+      type: 'group' | 'rename';
+      inputValue: string;
+      targetId?: string;
+  }>({
+      isOpen: false,
+      type: 'group',
+      inputValue: ''
+  });
+  
+  const modalInputRef = useRef<HTMLInputElement>(null);
 
   // --- INITIALIZATION ---
   useEffect(() => {
@@ -152,10 +171,10 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
 
   // --- FOCUS MODAL INPUT ---
   useEffect(() => {
-      if (isGroupModalOpen && groupInputRef.current) {
-          setTimeout(() => groupInputRef.current?.focus(), 50);
+      if (modalConfig.isOpen && modalInputRef.current) {
+          setTimeout(() => modalInputRef.current?.focus(), 50);
       }
-  }, [isGroupModalOpen]);
+  }, [modalConfig.isOpen]);
 
   // --- AUTH LOGIC ---
   const initiateLogin = () => {
@@ -273,30 +292,43 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   };
 
   const openGroupModal = () => {
-      setNewGroupName("");
-      setIsGroupModalOpen(true);
+      setModalConfig({ isOpen: true, type: 'group', inputValue: '' });
   };
 
-  const confirmAddGroup = () => {
-      if (!newGroupName.trim()) return;
+  const openRenameModal = (e: React.MouseEvent, id: string, currentTitle: string) => {
+      e.stopPropagation();
+      setModalConfig({ isOpen: true, type: 'rename', inputValue: currentTitle, targetId: id });
+  };
+
+  const handleModalSubmit = () => {
+      if (!modalConfig.inputValue.trim()) return;
       
-      const newId = Date.now().toString();
-      setMenuStructure([...menuStructure, {
-          id: newId,
-          title: newGroupName,
-          type: 'HTTP',
-          url: '#',
-          items: []
-      }]);
-      setSelectedId(newId);
-      setIsGroupModalOpen(false);
+      if (modalConfig.type === 'group') {
+          const newId = Date.now().toString();
+          setMenuStructure([...menuStructure, {
+              id: newId,
+              title: modalConfig.inputValue,
+              type: 'HTTP',
+              url: '#',
+              items: []
+          }]);
+          setSelectedId(newId);
+      } else if (modalConfig.type === 'rename' && modalConfig.targetId) {
+          const updated = modifyItem(menuStructure, modalConfig.targetId, (node) => ({
+              ...node,
+              title: modalConfig.inputValue
+          }));
+          setMenuStructure(updated);
+      }
+      
+      setModalConfig({ ...modalConfig, isOpen: false });
   };
 
-  const handleGroupInputKeyDown = (e: React.KeyboardEvent) => {
+  const handleModalInputKeyDown = (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
-          confirmAddGroup();
+          handleModalSubmit();
       } else if (e.key === 'Escape') {
-          setIsGroupModalOpen(false);
+          setModalConfig({ ...modalConfig, isOpen: false });
       }
   };
 
@@ -383,33 +415,42 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   }
 
   // --- RENDER BUILDER ---
-  const filteredCollections = collections.filter(c => c.title.toLowerCase().includes(search.toLowerCase()));
+  // Enhanced Search: Matches Title OR Handle
+  const lowerSearch = search.toLowerCase();
+  const filteredCollections = collections.filter(c => 
+      c.title.toLowerCase().includes(lowerSearch) || 
+      (c.handle && c.handle.toLowerCase().includes(lowerSearch))
+  );
 
   return (
       <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6 animate-in fade-in pb-6 relative">
           
-          {/* Group Name Modal Overlay */}
-          {isGroupModalOpen && (
+          {/* Group Name / Rename Modal Overlay */}
+          {modalConfig.isOpen && (
               <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg">
                   <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-lg shadow-xl w-full max-w-sm border border-gray-200 dark:border-neutral-800 animate-in zoom-in-95 duration-200">
                       <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-semibold text-gray-900 dark:text-white">Add Menu Group</h3>
-                          <button onClick={() => setIsGroupModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                              {modalConfig.type === 'group' ? 'Add Menu Group' : 'Rename Item'}
+                          </h3>
+                          <button onClick={() => setModalConfig({ ...modalConfig, isOpen: false })} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
                               <X size={18} />
                           </button>
                       </div>
                       <Input 
-                          ref={groupInputRef}
-                          value={newGroupName}
-                          onChange={(e) => setNewGroupName(e.target.value)}
-                          onKeyDown={handleGroupInputKeyDown}
-                          placeholder="e.g. Men, Summer Sale"
-                          label="Group Name"
+                          ref={modalInputRef}
+                          value={modalConfig.inputValue}
+                          onChange={(e) => setModalConfig({ ...modalConfig, inputValue: e.target.value })}
+                          onKeyDown={handleModalInputKeyDown}
+                          placeholder={modalConfig.type === 'group' ? "e.g. Men, Summer Sale" : "Enter new label"}
+                          label="Label"
                           className="mb-4"
                       />
                       <div className="flex gap-3 justify-end">
-                          <Button variant="ghost" onClick={() => setIsGroupModalOpen(false)}>Cancel</Button>
-                          <Button onClick={confirmAddGroup}>Create Group</Button>
+                          <Button variant="ghost" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>Cancel</Button>
+                          <Button onClick={handleModalSubmit}>
+                              {modalConfig.type === 'group' ? 'Create Group' : 'Save'}
+                          </Button>
                       </div>
                   </div>
               </div>
@@ -451,7 +492,10 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                       <div key={c.id} className="group flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#252525] rounded-md transition cursor-default border border-transparent hover:border-gray-200 dark:hover:border-neutral-700">
                           <div className="min-w-0 pr-2">
                               <p className="font-medium text-gray-700 dark:text-neutral-300 text-sm truncate">{c.title}</p>
-                              <p className="text-[10px] text-gray-400">{c.productsCount} products</p>
+                              <div className="flex gap-2">
+                                <p className="text-[10px] text-gray-400">{c.productsCount} products</p>
+                                <p className="text-[10px] text-gray-500/50 truncate max-w-[80px] font-mono">{c.handle}</p>
+                              </div>
                           </div>
                           <button 
                               onClick={() => addCollectionToSelection(c)}
@@ -506,6 +550,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                                 selectedId={selectedId}
                                 onSelect={(id) => setSelectedId(id)}
                                 onDelete={deleteItem}
+                                onEdit={openRenameModal}
                               />
                           ))}
                       </div>
