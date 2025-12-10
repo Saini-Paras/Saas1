@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, AlertCircle, ShoppingBag, LogOut, ChevronRight, ChevronDown, X, Edit2 } from 'lucide-react';
+import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, AlertCircle, ShoppingBag, LogOut, ChevronRight, ChevronDown, X, Edit2, Key, Globe } from 'lucide-react';
 import { Card, Button, Input } from '../Common';
 import { NotificationType } from '../../types';
 
@@ -128,7 +128,8 @@ const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selected
 
 export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   const [authState, setAuthState] = useState<AuthState>({ shop: '', token: '', isAuthenticated: false });
-  const [loginForm, setLoginForm] = useState({ shop: '', clientId: '', clientSecret: '' });
+  const [loginForm, setLoginForm] = useState({ shop: '', clientId: '', clientSecret: '', accessToken: '' });
+  const [authMode, setAuthMode] = useState<'oauth' | 'token'>('token'); // Default to token as it's simpler
   const [collections, setCollections] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -158,7 +159,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       const storedAuth = localStorage.getItem('shopify_menu_auth');
       const storedCreds = localStorage.getItem('shopify_menu_creds');
 
-      if (storedCreds) setLoginForm(JSON.parse(storedCreds));
+      if (storedCreds) setLoginForm(prev => ({ ...prev, ...JSON.parse(storedCreds) }));
 
       if (code && storedCreds) {
           handleOAuthCallback(code, JSON.parse(storedCreds));
@@ -178,13 +179,35 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
 
   // --- AUTH LOGIC ---
   const initiateLogin = () => {
-      const { shop, clientId, clientSecret } = loginForm;
-      if (!shop || !clientId || !clientSecret) {
-          notify("Please fill in all fields.", "error");
+      const { shop, clientId, clientSecret, accessToken } = loginForm;
+      
+      if (!shop) {
+          notify("Please enter the store URL.", "error");
           return;
       }
+
       let shopUrl = shop.replace('https://', '').replace(/\/$/, '');
       if (!shopUrl.includes('.myshopify.com')) shopUrl += '.myshopify.com';
+
+      // 1. Direct Token Login
+      if (authMode === 'token') {
+          if (!accessToken) {
+              notify("Please enter the Access Token.", "error");
+              return;
+          }
+          const newAuth = { shop: shopUrl, token: accessToken };
+          setAuthState({ ...newAuth, isAuthenticated: true });
+          localStorage.setItem('shopify_menu_auth', JSON.stringify(newAuth));
+          notify("Connected successfully!", "success");
+          fetchCollections(shopUrl, accessToken);
+          return;
+      }
+
+      // 2. OAuth Login
+      if (!clientId || !clientSecret) {
+          notify("Please fill in Client ID and Secret.", "error");
+          return;
+      }
 
       localStorage.setItem('shopify_menu_creds', JSON.stringify({ shop: shopUrl, clientId, clientSecret }));
       const redirectUri = window.location.origin;
@@ -370,7 +393,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   if (!authState.isAuthenticated) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[500px] animate-in fade-in slide-in-from-bottom-4">
-            <Card className="w-full p-8 border-t-4 border-t-accent-500">
+            <Card className="w-full max-w-lg p-8 border-t-4 border-t-accent-500">
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 bg-accent-50 dark:bg-accent-900/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <ShoppingBag size={32} className="text-accent-600 dark:text-accent-500" />
@@ -380,6 +403,22 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                         Connect your store to start building menus.
                     </p>
                 </div>
+
+                {/* Auth Mode Toggle */}
+                <div className="flex bg-gray-100 dark:bg-neutral-900 p-1 rounded-lg mb-6">
+                    <button
+                        onClick={() => setAuthMode('token')}
+                        className={`flex-1 text-xs font-medium py-2 rounded-md transition-all ${authMode === 'token' ? 'bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-neutral-500'}`}
+                    >
+                        Access Token
+                    </button>
+                    <button
+                        onClick={() => setAuthMode('oauth')}
+                        className={`flex-1 text-xs font-medium py-2 rounded-md transition-all ${authMode === 'oauth' ? 'bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-neutral-500'}`}
+                    >
+                        OAuth (Legacy)
+                    </button>
+                </div>
                 
                 <div className="space-y-4">
                     <Input 
@@ -387,27 +426,44 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                         value={loginForm.shop}
                         onChange={e => setLoginForm({...loginForm, shop: e.target.value})}
                         label="Store URL"
+                        icon={Globe}
                     />
-                    <Input 
-                        placeholder="Provided by Shopify App Setup" 
-                        value={loginForm.clientId}
-                        onChange={e => setLoginForm({...loginForm, clientId: e.target.value})}
-                        label="Client ID"
-                    />
-                    <Input 
-                        type="password"
-                        placeholder="Client Secret" 
-                        value={loginForm.clientSecret}
-                        onChange={e => setLoginForm({...loginForm, clientSecret: e.target.value})}
-                        label="Client Secret"
-                    />
-                    <Button onClick={initiateLogin} className="w-full mt-4" disabled={loading}>
-                        {loading ? 'Connecting...' : 'Authorize App'}
+
+                    {authMode === 'token' ? (
+                        <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                            <Input 
+                                type="password"
+                                placeholder="shpat_xxxxxxxxxxxxxxxx" 
+                                value={loginForm.accessToken}
+                                onChange={e => setLoginForm({...loginForm, accessToken: e.target.value})}
+                                label="Admin API Access Token"
+                                icon={Key}
+                            />
+                            <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-2">
+                                Generated in Shopify Admin &rarr; Settings &rarr; Apps &rarr; Develop apps.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
+                            <Input 
+                                placeholder="Provided by Shopify App Setup" 
+                                value={loginForm.clientId}
+                                onChange={e => setLoginForm({...loginForm, clientId: e.target.value})}
+                                label="Client ID"
+                            />
+                            <Input 
+                                type="password"
+                                placeholder="Client Secret" 
+                                value={loginForm.clientSecret}
+                                onChange={e => setLoginForm({...loginForm, clientSecret: e.target.value})}
+                                label="Client Secret"
+                            />
+                        </div>
+                    )}
+
+                    <Button onClick={initiateLogin} className="w-full mt-6" disabled={loading}>
+                        {loading ? 'Connecting...' : (authMode === 'oauth' ? 'Authorize App' : 'Connect Store')}
                     </Button>
-                </div>
-                <div className="mt-6 p-3 bg-yellow-50 dark:bg-yellow-950/10 border border-yellow-100 dark:border-yellow-900/30 rounded text-xs text-yellow-700 dark:text-yellow-500 flex gap-2">
-                    <AlertCircle size={16} className="shrink-0" />
-                    <p>Requires a Custom App created in Shopify Admin with `read_products` and `write_content` scopes.</p>
                 </div>
             </Card>
         </div>
