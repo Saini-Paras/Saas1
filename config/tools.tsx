@@ -8,7 +8,8 @@ import {
   Type, 
   Scaling, 
   Layers,
-  Workflow
+  Workflow,
+  Sparkles
 } from 'lucide-react';
 import { Tool } from '../types';
 
@@ -34,6 +35,13 @@ export const tools: Tool[] = [
       label: "JSON Creator", 
       icon: <FileJson size={18} />, 
       description: "Build Smart Collection JSONs visually.",
+      category: "shopify"
+  },
+    { 
+      id: "auto-json-creator", 
+      label: "Auto JSON Creator", 
+      icon: <Sparkles size={18} />, 
+      description: "Auto-generate Smart Collection JSON from a ZIP of CSVs.",
       category: "shopify"
   },
   { 

@@ -4,6 +4,7 @@ import { ToolId, NotificationType } from '../types';
 // Tool Imports
 import { TagAutomationTool } from './tools/TagAutomation';
 import { JsonCreatorTool } from './tools/JsonCreator';
+import { AutoJsonCreatorTool } from './tools/AutoJsonCreator';
 import { ImporterTool } from './tools/Importer';
 import { CollectionExtractorTool } from './tools/Extractor';
 import { ClassyPrefixerTool } from './tools/ClassyPrefixer';
@@ -24,6 +25,7 @@ export const ToolRenderer: React.FC<Props> = ({ activeToolId, notify, libsLoaded
   switch(activeToolId) {
       case 'tag-automation': return <TagAutomationTool libsLoaded={libsLoaded} notify={notify} />;
       case 'json-creator': return <JsonCreatorTool notify={notify} />;
+      case 'auto-json-creator': return <AutoJsonCreatorTool libsLoaded={libsLoaded} notify={notify} />;
       case 'importer': return <ImporterTool notify={notify} />;
       case 'extractor': return <CollectionExtractorTool notify={notify} />;
       case 'shopify-scraper': return <ShopifyScraperTool notify={notify} libsLoaded={libsLoaded} />;

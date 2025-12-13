@@ -15,6 +15,7 @@ export type ToolId =
   // Shopify Tools
   | 'tag-automation' 
   | 'json-creator' 
+  | 'auto-json-creator'
   | 'importer' 
   | 'extractor'
   | 'shopify-scraper'
