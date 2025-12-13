@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, AlertCircle, ShoppingBag, LogOut, ChevronRight, ChevronDown, X, Edit2, Key, Globe } from 'lucide-react';
+import { Layers, Tag, Trash2, Search, Plus, Check, CloudUpload, CornerDownRight, ShoppingBag, LogOut, ChevronRight, ChevronDown, X, Key, Globe, FileText, Link as LinkIcon, GripVertical } from 'lucide-react';
 import { Card, Button, Input } from '../Common';
 import { NotificationType } from '../../types';
 
@@ -10,7 +10,7 @@ interface Props {
 interface MenuItemData {
   id: string;
   title: string;
-  type: 'HTTP' | 'COLLECTION';
+  type: 'HTTP' | 'COLLECTION' | 'PAGE';
   url: string;
   resourceId?: string;
   items: MenuItemData[];
@@ -22,6 +22,14 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
+interface ResourceItem {
+    id: string;
+    title: string;
+    handle: string;
+    type: 'COLLECTION' | 'PAGE';
+    productsCount?: number;
+}
+
 // --- RECURSIVE COMPONENT ---
 interface RecursiveItemProps {
   item: MenuItemData;
@@ -29,76 +37,123 @@ interface RecursiveItemProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onDelete: (e: React.MouseEvent, id: string) => void;
-  onEdit: (e: React.MouseEvent, id: string, title: string) => void;
+  onUpdate: (id: string, updates: Partial<MenuItemData>) => void;
 }
 
-const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selectedId, onSelect, onDelete, onEdit }) => {
+const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selectedId, onSelect, onDelete, onUpdate }) => {
   const isSelected = selectedId === item.id;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const hasChildren = item.items && item.items.length > 0;
   
+  // Icon based on Type
+  const TypeIcon = {
+      'HTTP': LinkIcon,
+      'COLLECTION': Tag,
+      'PAGE': FileText
+  }[item.type];
+
+  // Colors for the Type Badge
+  const badgeColors = {
+      'HTTP': 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-400',
+      'COLLECTION': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+      'PAGE': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+  };
+
   return (
-      <div className="relative">
+      <div className="relative animate-in fade-in duration-300">
+          {/* Main Card */}
           <div 
               onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
               className={`
-                  group flex items-center justify-between p-3 mb-2 rounded-lg cursor-pointer border transition-all select-none
+                  group mb-3 rounded-lg border transition-all select-none overflow-hidden
                   ${isSelected 
-                      ? 'bg-accent-50/50 border-accent-500 shadow-sm ring-1 ring-accent-500 dark:bg-accent-900/20 dark:border-accent-500' 
-                      : 'bg-white border-gray-200 hover:border-accent-300 dark:bg-[#1e1e1e] dark:border-neutral-800 dark:hover:border-accent-500/50'}
+                      ? 'bg-white dark:bg-[#1e1e1e] border-accent-500 ring-1 ring-accent-500 shadow-md' 
+                      : 'bg-white dark:bg-[#1e1e1e] border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'}
               `}
           >
-              <div className="flex items-center gap-3 overflow-hidden">
-                  {/* Collapse Toggle */}
-                  {hasChildren ? (
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
-                        className="text-gray-400 hover:text-accent-500 transition-colors p-1 shrink-0"
-                    >
-                        {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
-                    </button>
-                  ) : (
-                    <div className="w-[22px] shrink-0" /> // Spacer
-                  )}
+              {/* Header / Summary Row */}
+              <div className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                      {/* Drag Handle (Visual Only) */}
+                      <GripVertical size={14} className="text-gray-300 dark:text-neutral-600 cursor-move" />
 
-                  <div className={`w-8 h-8 rounded-md flex items-center justify-center text-xs shadow-sm shrink-0
-                      ${item.type === 'HTTP' 
-                          ? 'bg-gray-800 text-white dark:bg-neutral-700' 
-                          : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}
-                  >
-                      {item.type === 'HTTP' ? <Layers size={14} /> : <Tag size={14} />}
+                      {/* Collapse Toggle */}
+                      <button 
+                          onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
+                          className={`text-gray-400 hover:text-accent-500 transition-colors p-1 shrink-0 ${!hasChildren ? 'opacity-20 pointer-events-none' : ''}`}
+                      >
+                          {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                      </button>
+
+                      {/* Icon */}
+                      <div className={`w-8 h-8 rounded-md flex items-center justify-center text-xs shrink-0 ${badgeColors[item.type]}`}>
+                          <TypeIcon size={14} />
+                      </div>
+
+                      {/* Title Preview */}
+                      <div className="min-w-0">
+                          <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                              {item.title}
+                          </p>
+                          {!isSelected && (
+                              <p className="text-[10px] text-gray-400 font-mono truncate max-w-[200px]">{item.url}</p>
+                          )}
+                      </div>
                   </div>
-                  <div className="min-w-0">
-                      <p className={`font-medium text-sm truncate ${isSelected ? 'text-accent-700 dark:text-accent-400' : 'text-gray-700 dark:text-neutral-200'}`}>
-                          {item.title}
-                      </p>
+                  
+                  <div className="flex items-center gap-2 pl-2 shrink-0">
+                       <span className="text-[10px] text-gray-400 font-medium bg-gray-50 dark:bg-neutral-800 px-1.5 py-0.5 rounded border border-gray-100 dark:border-neutral-700">
+                          {level === 0 ? 'Root' : `Lvl ${level}`}
+                      </span>
+                      <button 
+                          onClick={(e) => onDelete(e, item.id)} 
+                          className="h-8 w-8 flex items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition"
+                          title="Delete Item"
+                      >
+                          <Trash2 size={14} />
+                      </button>
                   </div>
               </div>
-              
-              <div className="flex items-center gap-1 pl-2 shrink-0">
-                  <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mr-2 hidden sm:block whitespace-nowrap">
-                      {level === 0 ? 'Header' : `Level ${level}`}
-                  </span>
-                  <button 
-                      onClick={(e) => onEdit(e, item.id, item.title)} 
-                      className="h-7 w-7 flex items-center justify-center rounded text-gray-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/30 dark:hover:text-blue-400 transition shrink-0"
-                      title="Rename Label"
-                  >
-                      <Edit2 size={12} />
-                  </button>
-                  <button 
-                      onClick={(e) => onDelete(e, item.id)} 
-                      className="h-7 w-7 flex items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition shrink-0"
-                      title="Delete Item"
-                  >
-                      <Trash2 size={12} />
-                  </button>
-              </div>
+
+              {/* Expanded Edit Form */}
+              {isSelected && (
+                  <div className="px-3 pb-4 pt-1 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/30 grid gap-4 grid-cols-1 md:grid-cols-2 animate-in slide-in-from-top-2 duration-200 cursor-default" onClick={e => e.stopPropagation()}>
+                       {/* Label Input */}
+                       <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Label</label>
+                            <input 
+                                type="text"
+                                value={item.title}
+                                onChange={(e) => onUpdate(item.id, { title: e.target.value })}
+                                className="w-full bg-white dark:bg-[#141414] border border-gray-200 dark:border-neutral-800 rounded px-3 py-2 text-sm focus:border-accent-500 outline-none transition-colors text-gray-900 dark:text-white"
+                            />
+                       </div>
+
+                       {/* Link Input with Badge */}
+                       <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Link</label>
+                            <div className="relative">
+                                <div className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${badgeColors[item.type]}`}>
+                                        <TypeIcon size={10} />
+                                        {item.type}
+                                    </div>
+                                </div>
+                                <input 
+                                    type="text"
+                                    value={item.url}
+                                    onChange={(e) => onUpdate(item.id, { url: e.target.value })}
+                                    className="w-full bg-white dark:bg-[#141414] border border-gray-200 dark:border-neutral-800 rounded px-3 py-2 text-sm pl-28 focus:border-accent-500 outline-none transition-colors font-mono text-gray-600 dark:text-gray-300"
+                                />
+                            </div>
+                       </div>
+                  </div>
+              )}
           </div>
 
           {/* Nested Children */}
           {!isCollapsed && hasChildren && (
-              <div className="pl-6 ml-4 border-l border-gray-200 dark:border-neutral-800 mb-2">
+              <div className="pl-6 ml-4 border-l border-gray-200 dark:border-neutral-800 mb-4">
                   {item.items.map(child => (
                       <RecursiveMenuItem 
                         key={child.id} 
@@ -107,7 +162,7 @@ const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selected
                         selectedId={selectedId}
                         onSelect={onSelect}
                         onDelete={onDelete}
-                        onEdit={onEdit}
+                        onUpdate={onUpdate}
                       />
                   ))}
               </div>
@@ -115,10 +170,10 @@ const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selected
           
           {/* Drop Zone Visual */}
           {!isCollapsed && isSelected && !hasChildren && (
-              <div className="pl-6 ml-4 border-l border-dashed border-accent-200 dark:border-accent-900 mb-2 py-1">
-                  <div className="text-xs text-accent-500 dark:text-accent-400 px-2 flex items-center gap-2 opacity-80">
+              <div className="pl-6 ml-4 border-l border-dashed border-accent-200 dark:border-accent-900 mb-4 py-2">
+                  <div className="text-xs text-accent-500 dark:text-accent-400 px-3 flex items-center gap-2 opacity-80">
                       <CornerDownRight size={14} />
-                      Add sub-items from the list...
+                      <span className="font-medium">Selected:</span> Click a resource on the left to add as sub-item.
                   </div>
               </div>
           )}
@@ -129,28 +184,17 @@ const RecursiveMenuItem: React.FC<RecursiveItemProps> = ({ item, level, selected
 export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   const [authState, setAuthState] = useState<AuthState>({ shop: '', token: '', isAuthenticated: false });
   const [loginForm, setLoginForm] = useState({ shop: '', clientId: '', clientSecret: '', accessToken: '' });
-  const [authMode, setAuthMode] = useState<'oauth' | 'token'>('token'); // Default to token as it's simpler
-  const [collections, setCollections] = useState<any[]>([]);
+  const [authMode, setAuthMode] = useState<'oauth' | 'token'>('token');
+  
+  // Data State
+  const [resources, setResources] = useState<ResourceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   
+  // Menu State
   const [menuStructure, setMenuStructure] = useState<MenuItemData[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null); 
   const [pushStatus, setPushStatus] = useState<'idle' | 'pushing' | 'success' | 'error'>('idle');
-
-  // Modal State
-  const [modalConfig, setModalConfig] = useState<{
-      isOpen: boolean;
-      type: 'group' | 'rename';
-      inputValue: string;
-      targetId?: string;
-  }>({
-      isOpen: false,
-      type: 'group',
-      inputValue: ''
-  });
-  
-  const modalInputRef = useRef<HTMLInputElement>(null);
 
   // --- INITIALIZATION ---
   useEffect(() => {
@@ -166,48 +210,29 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       } else if (storedAuth) {
           const parsed = JSON.parse(storedAuth);
           setAuthState({ ...parsed, isAuthenticated: true });
-          fetchCollections(parsed.shop, parsed.token);
+          fetchResources(parsed.shop, parsed.token);
       }
   }, []);
-
-  // --- FOCUS MODAL INPUT ---
-  useEffect(() => {
-      if (modalConfig.isOpen && modalInputRef.current) {
-          setTimeout(() => modalInputRef.current?.focus(), 50);
-      }
-  }, [modalConfig.isOpen]);
 
   // --- AUTH LOGIC ---
   const initiateLogin = () => {
       const { shop, clientId, clientSecret, accessToken } = loginForm;
-      
-      if (!shop) {
-          notify("Please enter the store URL.", "error");
-          return;
-      }
+      if (!shop) { notify("Please enter the store URL.", "error"); return; }
 
       let shopUrl = shop.replace('https://', '').replace(/\/$/, '');
       if (!shopUrl.includes('.myshopify.com')) shopUrl += '.myshopify.com';
 
-      // 1. Direct Token Login
       if (authMode === 'token') {
-          if (!accessToken) {
-              notify("Please enter the Access Token.", "error");
-              return;
-          }
+          if (!accessToken) { notify("Please enter the Access Token.", "error"); return; }
           const newAuth = { shop: shopUrl, token: accessToken };
           setAuthState({ ...newAuth, isAuthenticated: true });
           localStorage.setItem('shopify_menu_auth', JSON.stringify(newAuth));
           notify("Connected successfully!", "success");
-          fetchCollections(shopUrl, accessToken);
+          fetchResources(shopUrl, accessToken);
           return;
       }
 
-      // 2. OAuth Login
-      if (!clientId || !clientSecret) {
-          notify("Please fill in Client ID and Secret.", "error");
-          return;
-      }
+      if (!clientId || !clientSecret) { notify("Please fill in Client ID and Secret.", "error"); return; }
 
       localStorage.setItem('shopify_menu_creds', JSON.stringify({ shop: shopUrl, clientId, clientSecret }));
       const redirectUri = window.location.origin;
@@ -231,7 +256,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
               localStorage.setItem('shopify_menu_auth', JSON.stringify(newAuth));
               window.history.replaceState({}, document.title, window.location.pathname);
               notify("Authentication successful!", "success");
-              fetchCollections(shop, data.access_token);
+              fetchResources(shop, data.access_token);
           } else {
               throw new Error(data.error || "Failed to exchange token");
           }
@@ -246,22 +271,36 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       localStorage.removeItem('shopify_menu_auth');
       setAuthState({ shop: '', token: '', isAuthenticated: false });
       setMenuStructure([]);
-      setCollections([]);
+      setResources([]);
   };
 
   // --- API LOGIC ---
-  const fetchCollections = async (shop: string, token: string) => {
+  const fetchResources = async (shop: string, token: string) => {
       setLoading(true);
       try {
-          const res = await fetch('/api/fetch_collections', {
+          // 1. Fetch Collections
+          const colRes = await fetch('/api/fetch_collections', {
               method: 'POST',
               headers: { 'x-shopify-shop': shop, 'x-shopify-token': token }
           });
-          const data = await res.json();
-          if (data.error) throw new Error(data.error);
-          setCollections(data);
+          const colData = await colRes.json();
+          
+          // 2. Fetch Pages
+          const pageRes = await fetch('/api/fetch_pages', {
+            method: 'POST',
+            headers: { 'x-shopify-shop': shop, 'x-shopify-token': token }
+          });
+          const pageData = await pageRes.json();
+
+          // Merge
+          const merged: ResourceItem[] = [
+              ...(Array.isArray(colData) ? colData.map((c: any) => ({ ...c, type: 'COLLECTION' })) : []),
+              ...(Array.isArray(pageData) ? pageData.map((p: any) => ({ ...p, type: 'PAGE' })) : [])
+          ];
+          
+          setResources(merged);
       } catch (e: any) {
-          notify(`Failed to fetch collections: ${e.message}`, "error");
+          notify(`Failed to fetch resources: ${e.message}`, "error");
       } finally {
           setLoading(false);
       }
@@ -300,7 +339,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       }
   };
 
-  // --- NESTING LOGIC ---
+  // --- DATA MANIPULATION ---
   const modifyItem = (items: MenuItemData[], targetId: string, action: (item: MenuItemData) => MenuItemData | null): MenuItemData[] => {
       return items.map(item => {
           if (item.id === targetId) {
@@ -314,59 +353,40 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
       }).filter((item): item is MenuItemData => item !== null);
   };
 
-  const openGroupModal = () => {
-      setModalConfig({ isOpen: true, type: 'group', inputValue: '' });
+  const handleUpdateItem = (id: string, updates: Partial<MenuItemData>) => {
+      const updated = modifyItem(menuStructure, id, (node) => ({
+          ...node,
+          ...updates
+      }));
+      setMenuStructure(updated);
   };
 
-  const openRenameModal = (e: React.MouseEvent, id: string, currentTitle: string) => {
-      e.stopPropagation();
-      setModalConfig({ isOpen: true, type: 'rename', inputValue: currentTitle, targetId: id });
+  const addMainGroup = () => {
+      const newId = Date.now().toString();
+      setMenuStructure([...menuStructure, {
+          id: newId,
+          title: "New Group",
+          type: 'HTTP',
+          url: '#',
+          items: []
+      }]);
+      setSelectedId(newId);
   };
 
-  const handleModalSubmit = () => {
-      if (!modalConfig.inputValue.trim()) return;
-      
-      if (modalConfig.type === 'group') {
-          const newId = Date.now().toString();
-          setMenuStructure([...menuStructure, {
-              id: newId,
-              title: modalConfig.inputValue,
-              type: 'HTTP',
-              url: '#',
-              items: []
-          }]);
-          setSelectedId(newId);
-      } else if (modalConfig.type === 'rename' && modalConfig.targetId) {
-          const updated = modifyItem(menuStructure, modalConfig.targetId, (node) => ({
-              ...node,
-              title: modalConfig.inputValue
-          }));
-          setMenuStructure(updated);
-      }
-      
-      setModalConfig({ ...modalConfig, isOpen: false });
-  };
-
-  const handleModalInputKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-          handleModalSubmit();
-      } else if (e.key === 'Escape') {
-          setModalConfig({ ...modalConfig, isOpen: false });
-      }
-  };
-
-  const addCollectionToSelection = (collection: any) => {
+  const addResourceToSelection = (resource: ResourceItem) => {
       if (!selectedId) {
           notify("Please select a Group or Item on the right first!", "error");
           return;
       }
 
+      const urlPrefix = resource.type === 'COLLECTION' ? '/collections/' : '/pages/';
+
       const newItem: MenuItemData = {
           id: Date.now().toString() + Math.random().toString(),
-          title: collection.title,
-          type: 'COLLECTION',
-          resourceId: collection.id,
-          url: `/collections/${collection.handle}`,
+          title: resource.title,
+          type: resource.type,
+          resourceId: resource.id,
+          url: `${urlPrefix}${resource.handle}`,
           items: []
       };
 
@@ -399,11 +419,9 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                         <ShoppingBag size={32} className="text-accent-600 dark:text-accent-500" />
                     </div>
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Shopify Connect</h2>
-                    <p className="text-sm text-gray-500 dark:text-neutral-500 mt-2">
-                        Connect your store to start building menus.
-                    </p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-500 mt-2">Connect your store to start building menus.</p>
                 </div>
-
+                
                 {/* Auth Mode Toggle */}
                 <div className="flex bg-gray-100 dark:bg-neutral-900 p-1 rounded-lg mb-6">
                     <button
@@ -419,7 +437,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                         OAuth (Legacy)
                     </button>
                 </div>
-                
+
                 <div className="space-y-4">
                     <Input 
                         placeholder="my-store.myshopify.com" 
@@ -429,7 +447,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                         icon={Globe}
                     />
 
-                    {authMode === 'token' ? (
+                     {authMode === 'token' ? (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                             <Input 
                                 type="password"
@@ -471,48 +489,16 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
   }
 
   // --- RENDER BUILDER ---
-  // Enhanced Search: Matches Title OR Handle
   const lowerSearch = search.toLowerCase();
-  const filteredCollections = collections.filter(c => 
-      c.title.toLowerCase().includes(lowerSearch) || 
-      (c.handle && c.handle.toLowerCase().includes(lowerSearch))
+  const filteredResources = resources.filter(r => 
+      r.title.toLowerCase().includes(lowerSearch) || 
+      (r.handle && r.handle.toLowerCase().includes(lowerSearch))
   );
 
   return (
       <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6 animate-in fade-in pb-6 relative">
           
-          {/* Group Name / Rename Modal Overlay */}
-          {modalConfig.isOpen && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg">
-                  <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-lg shadow-xl w-full max-w-sm border border-gray-200 dark:border-neutral-800 animate-in zoom-in-95 duration-200">
-                      <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-semibold text-gray-900 dark:text-white">
-                              {modalConfig.type === 'group' ? 'Add Menu Group' : 'Rename Item'}
-                          </h3>
-                          <button onClick={() => setModalConfig({ ...modalConfig, isOpen: false })} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
-                              <X size={18} />
-                          </button>
-                      </div>
-                      <Input 
-                          ref={modalInputRef}
-                          value={modalConfig.inputValue}
-                          onChange={(e) => setModalConfig({ ...modalConfig, inputValue: e.target.value })}
-                          onKeyDown={handleModalInputKeyDown}
-                          placeholder={modalConfig.type === 'group' ? "e.g. Men, Summer Sale" : "Enter new label"}
-                          label="Label"
-                          className="mb-4"
-                      />
-                      <div className="flex gap-3 justify-end">
-                          <Button variant="ghost" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>Cancel</Button>
-                          <Button onClick={handleModalSubmit}>
-                              {modalConfig.type === 'group' ? 'Create Group' : 'Save'}
-                          </Button>
-                      </div>
-                  </div>
-              </div>
-          )}
-
-          {/* Left Panel: Collections */}
+          {/* Left Panel: Resources (Collections & Pages) */}
           <Card className="w-full md:w-80 flex flex-col p-0 overflow-hidden shrink-0 h-80 md:h-full">
               <div className="p-4 border-b border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-[#1e1e1e]">
                   <div className="flex justify-between items-start mb-4">
@@ -521,40 +507,40 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                             <ShoppingBag size={16} />
                          </div>
                          <div className="min-w-0 overflow-hidden">
-                            <h2 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider truncate">Deep Menu Builder</h2>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shrink-0"></div>
-                                <span className="text-[10px] text-gray-500 dark:text-neutral-500 truncate block" title={authState.shop}>{authState.shop}</span>
-                            </div>
+                            <h2 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider truncate">Store Resources</h2>
+                            <span className="text-[10px] text-gray-500 dark:text-neutral-500 truncate block">{authState.shop}</span>
                          </div>
                       </div>
                       <Button variant="secondary" onClick={logout} className="h-7 px-2 text-xs gap-1.5 shrink-0 bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 ml-2">
-                         <LogOut size={12} /> Logout
+                         <LogOut size={12} />
                       </Button>
                   </div>
                   <Input 
-                      placeholder="Search collections..." 
+                      placeholder="Search pages, collections..." 
                       value={search} 
                       onChange={e => setSearch(e.target.value)}
                       icon={Search}
                       className="bg-transparent dark:bg-transparent"
                   />
               </div>
+              
               <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                  {loading && <div className="text-center p-4 text-xs text-gray-400">Loading collections...</div>}
-                  {!loading && filteredCollections.length === 0 && <div className="text-center p-4 text-xs text-gray-400">No collections found.</div>}
+                  {loading && <div className="text-center p-4 text-xs text-gray-400">Loading resources...</div>}
                   
-                  {filteredCollections.map(c => (
-                      <div key={c.id} className="group flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#252525] rounded-md transition cursor-default border border-transparent hover:border-gray-200 dark:hover:border-neutral-700">
+                  {!loading && filteredResources.map(r => (
+                      <div key={r.id} className="group flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#252525] rounded-md transition cursor-default border border-transparent hover:border-gray-200 dark:hover:border-neutral-700">
                           <div className="min-w-0 pr-2">
-                              <p className="font-medium text-gray-700 dark:text-neutral-300 text-sm truncate">{c.title}</p>
-                              <div className="flex gap-2">
-                                <p className="text-[10px] text-gray-400">{c.productsCount} products</p>
-                                <p className="text-[10px] text-gray-500/50 truncate max-w-[80px] font-mono">{c.handle}</p>
+                              <div className="flex items-center gap-2 mb-0.5">
+                                  {r.type === 'PAGE' 
+                                    ? <span className="text-[9px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-1 rounded uppercase font-bold tracking-wide">Page</span>
+                                    : <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 px-1 rounded uppercase font-bold tracking-wide">Col</span>
+                                  }
+                                  <p className="font-medium text-gray-700 dark:text-neutral-300 text-sm truncate">{r.title}</p>
                               </div>
+                              <p className="text-[10px] text-gray-500/50 truncate max-w-[150px] font-mono">{r.handle}</p>
                           </div>
                           <button 
-                              onClick={() => addCollectionToSelection(c)}
+                              onClick={() => addResourceToSelection(r)}
                               className="h-7 w-7 rounded bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:bg-accent-600 hover:text-white dark:hover:bg-accent-600 dark:hover:text-white transition flex items-center justify-center shrink-0"
                               title="Add to selected parent"
                           >
@@ -570,11 +556,11 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                {/* Toolbar */}
               <Card className="p-4 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
                   <div>
-                      <h2 className="text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-wider mb-1">2. Menu Structure</h2>
-                      <p className="text-xs text-gray-400">Select an item below to nest collections under it.</p>
+                      <h2 className="text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-wider mb-1">Menu Structure</h2>
+                      <p className="text-xs text-gray-400">Add a group, then select it to add items from the left.</p>
                   </div>
                   <div className="flex gap-3 w-full md:w-auto">
-                      <Button variant="secondary" onClick={openGroupModal} className="text-xs h-9 flex-1 md:flex-none">
+                      <Button variant="secondary" onClick={addMainGroup} className="text-xs h-9 flex-1 md:flex-none">
                           <Layers size={14} /> Add Main Group
                       </Button>
                       <Button 
@@ -597,7 +583,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                           <p className="text-sm">Click "Add Main Group" to start building</p>
                       </div>
                   ) : (
-                      <div className="space-y-4 max-w-4xl mx-auto">
+                      <div className="space-y-4 max-w-4xl mx-auto pb-20">
                           {menuStructure.map((item) => (
                               <RecursiveMenuItem 
                                 key={item.id} 
@@ -606,7 +592,7 @@ export const MenuBuilderTool: React.FC<Props> = ({ notify }) => {
                                 selectedId={selectedId}
                                 onSelect={(id) => setSelectedId(id)}
                                 onDelete={deleteItem}
-                                onEdit={openRenameModal}
+                                onUpdate={handleUpdateItem}
                               />
                           ))}
                       </div>
