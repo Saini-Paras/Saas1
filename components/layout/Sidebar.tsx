@@ -30,7 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title={label}
     >
       <Icon size={20} className={`shrink-0 ${activeCategory === id ? 'text-accent-600 dark:text-white' : ''}`} />
-      <span className={`transition-opacity duration-300 whitespace-nowrap ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
+      <span className={`transition-all duration-300 whitespace-nowrap opacity-100 ${effectiveDesktopOpen ? '' : 'lg:opacity-0 lg:hidden lg:w-0'}`}>
         {label}
       </span>
     </button>
@@ -50,12 +50,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       `}
     >
       {/* Sidebar Header */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-neutral-800 overflow-hidden whitespace-nowrap shrink-0">
+      <div className={`h-16 flex items-center border-b border-gray-200 dark:border-neutral-800 overflow-hidden whitespace-nowrap shrink-0 transition-all duration-300 ${effectiveDesktopOpen ? 'px-6 gap-3' : 'px-6 lg:px-0 lg:justify-center'}`}>
         <div className="flex items-center gap-3 font-semibold text-gray-900 dark:text-white tracking-tight">
           <div className="w-8 h-8 bg-accent-600 rounded-md flex items-center justify-center shrink-0 shadow-sm">
             <Sparkles size={16} className="text-white fill-current" />
           </div>
-          <span className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden')}`}>
+          <span className={`transition-all duration-300 opacity-100 ${effectiveDesktopOpen ? '' : 'lg:opacity-0 lg:hidden lg:w-0'}`}>
              Holo's DB
           </span>
         </div>
@@ -68,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="space-y-1">
-           <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden')}`}>
+           <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-all duration-300 opacity-100 ${effectiveDesktopOpen ? '' : 'lg:opacity-0 lg:hidden'}`}>
               Workspaces
            </div>
            <NavItem id="shopify" icon={ShoppingBag} label="Shopify Tools" />
@@ -78,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="space-y-1">
-        <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden')}`}>
+        <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-all duration-300 opacity-100 ${effectiveDesktopOpen ? '' : 'lg:opacity-0 lg:hidden'}`}>
               Testing
            </div>
           <NavItem id="beta" icon={Workflow} label="Shopify workflow" />
@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="h-9 w-9 rounded-full bg-accent-600 flex items-center justify-center text-xs text-white font-medium shrink-0 shadow-sm">
                   HD
               </div>
-              <div className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden lg:w-0')}`}>
+              <div className={`transition-all duration-300 opacity-100 ${effectiveDesktopOpen ? '' : 'lg:opacity-0 lg:hidden lg:w-0'}`}>
                   <div className="text-sm font-medium text-gray-900 dark:text-white truncate w-32">Holo Drifter</div>
                   <div className="text-[10px] text-gray-500 dark:text-neutral-500">Administrator</div>
               </div>
