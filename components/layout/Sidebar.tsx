@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, LayoutDashboard, ShoppingBag, Code2, Layers } from 'lucide-react';
+import { Sparkles, LayoutDashboard, ShoppingBag, Code2, Layers, Workflow } from 'lucide-react';
 import { ToolCategory } from '../../types';
 
 interface SidebarProps {
@@ -74,6 +74,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
            <NavItem id="shopify" icon={ShoppingBag} label="Shopify Tools" />
            <NavItem id="web" icon={Code2} label="Web Tools" />
            <NavItem id="builder" icon={Layers} label="Menu Builder" />
+         
+        </div>
+
+        <div className="space-y-1">
+        <div className={`px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : (effectiveDesktopOpen ? 'lg:opacity-100' : 'lg:opacity-0 hidden')}`}>
+              Testing
+           </div>
+          <NavItem id="beta" icon={Workflow} label="Shopify workflow" />
         </div>
       </div>
 

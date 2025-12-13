@@ -142,7 +142,7 @@ const App = () => {
                 </div>
                 
                 {categoryTools.length > 1 && (
-                    <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar max-w-full w-full shrink-0">
+                    <div className="flex p-1 bg-gray-100 dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-neutral-800 overflow-x-auto self-start custom-scrollbar max-w-full  shrink-0">
                         {categoryTools.map(tool => (
                             <button
                                 key={tool.id}

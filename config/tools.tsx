@@ -23,11 +23,32 @@ export const tools: Tool[] = [
       category: "beta"
   },
   // Shopify Tools
+    {
+      id: "shopify-scraper",
+      label: "Shopify Bulk Scraper",
+      icon: <FileArchive size={18} />,
+      description: "Download products from multiple collections.",
+      category: "shopify"
+  },
   { 
       id: "tag-automation", 
       label: "Tag Automation", 
       icon: <Database size={18} />, 
       description: "Auto-tag products via CSV & ZIP processing.",
+      category: "shopify"
+  },
+      { 
+      id: "auto-json-creator", 
+      label: "Auto JSON Creator", 
+      icon: <Sparkles size={18} />, 
+      description: "Auto-generate Smart Collection JSON from a ZIP of CSVs.",
+      category: "shopify"
+  },
+    { 
+      id: "importer", 
+      label: "Collection Importer", 
+      icon: <Upload size={18} />, 
+      description: "Bulk upload collections via API.",
       category: "shopify"
   },
   { 
@@ -37,20 +58,6 @@ export const tools: Tool[] = [
       description: "Build Smart Collection JSONs visually.",
       category: "shopify"
   },
-    { 
-      id: "auto-json-creator", 
-      label: "Auto JSON Creator", 
-      icon: <Sparkles size={18} />, 
-      description: "Auto-generate Smart Collection JSON from a ZIP of CSVs.",
-      category: "shopify"
-  },
-  { 
-      id: "importer", 
-      label: "Collection Importer", 
-      icon: <Upload size={18} />, 
-      description: "Bulk upload collections via API.",
-      category: "shopify"
-  },
   { 
       id: "extractor", 
       label: "Collection Extractor", 
@@ -58,13 +65,7 @@ export const tools: Tool[] = [
       description: "Scrape public collection data.",
       category: "shopify"
   },
-  {
-      id: "shopify-scraper",
-      label: "Shopify Bulk Scraper",
-      icon: <FileArchive size={18} />,
-      description: "Download products from multiple collections.",
-      category: "shopify"
-  },
+
   // Web Tools
   {
       id: "classy-prefixer",

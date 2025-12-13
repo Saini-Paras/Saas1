@@ -23,12 +23,12 @@ export const ToolRenderer: React.FC<Props> = ({ activeToolId, notify, libsLoaded
   if (!activeToolId) return null;
 
   switch(activeToolId) {
+      case 'shopify-scraper': return <ShopifyScraperTool notify={notify} libsLoaded={libsLoaded} />;
       case 'tag-automation': return <TagAutomationTool libsLoaded={libsLoaded} notify={notify} />;
-      case 'json-creator': return <JsonCreatorTool notify={notify} />;
       case 'auto-json-creator': return <AutoJsonCreatorTool libsLoaded={libsLoaded} notify={notify} />;
       case 'importer': return <ImporterTool notify={notify} />;
+      case 'json-creator': return <JsonCreatorTool notify={notify} />;
       case 'extractor': return <CollectionExtractorTool notify={notify} />;
-      case 'shopify-scraper': return <ShopifyScraperTool notify={notify} libsLoaded={libsLoaded} />;
       case 'classy-prefixer': return <ClassyPrefixerTool notify={notify} />;
       case 'rem-to-px': return <RemToPxTool notify={notify} />;
       case 'menu-builder': return <MenuBuilderTool notify={notify} />;

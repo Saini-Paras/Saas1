@@ -140,7 +140,7 @@ export const RemToPxTool: React.FC<Props> = ({ notify }) => {
           </Card>
 
           {/* Output Side */}
-          <Card className="flex-1 flex flex-col bg-gray-50/50 dark:bg-[#181818]/50">
+          <Card className="flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-gray-900 dark:text-white">Output Result</h3>
               {conversionCount > 0 && (

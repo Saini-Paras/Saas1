@@ -395,7 +395,6 @@ export const ShopifyScraperTool: React.FC<Props> = ({ notify, libsLoaded }) => {
                     <input 
                         type="checkbox" 
                         id="proxy" 
-                        checked={useProxy} 
                         onChange={(e) => setUseProxy(e.target.checked)}
                         className="w-4 h-4 text-accent-600 rounded border-gray-300 focus:ring-accent-500 bg-white dark:bg-neutral-900 dark:border-neutral-700"
                     />

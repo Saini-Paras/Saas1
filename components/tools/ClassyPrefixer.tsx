@@ -129,85 +129,86 @@ export const ClassyPrefixerTool: React.FC<Props> = ({ notify }) => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="space-y-6">
-        <Card>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Type size={18} className="text-gray-400" />
-            Configuration
-          </h3>
-          <div className="space-y-4">
-            <Input 
-              label="Class Prefix" 
-              value={prefix} 
-              onChange={(e) => setPrefix(e.target.value)} 
-              placeholder="e.g. my-" 
-            />
-            <div className="flex items-center gap-2 pt-2">
-                <input 
-                    type="checkbox" 
-                    id="excludeCommon" 
-                    checked={excludeCommon}
-                    onChange={(e) => setExcludeCommon(e.target.checked)}
-                    className="w-4 h-4 text-accent-600 rounded border-gray-300 focus:ring-accent-500 dark:bg-[#171717] dark:border-neutral-700"
-                />
-                <label htmlFor="excludeCommon" className="text-sm text-gray-600 dark:text-neutral-400 cursor-pointer select-none">
-                    Exclude common framework classes (btn, container, row, etc.)
-                </label>
-            </div>
+      
+      {/* 1. Configuration (Top Left) */}
+      <Card className="h-full">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Type size={18} className="text-gray-400" />
+          Configuration
+        </h3>
+        <div className="space-y-4">
+          <Input 
+            label="Class Prefix" 
+            value={prefix} 
+            onChange={(e) => setPrefix(e.target.value)} 
+            placeholder="e.g. my-" 
+          />
+          <div className="flex items-center gap-2 pt-2">
+              <input 
+                  type="checkbox" 
+                  id="excludeCommon" 
+                  checked={excludeCommon}
+                  onChange={(e) => setExcludeCommon(e.target.checked)}
+                  className="w-4 h-4 text-accent-600 rounded border-gray-300 focus:ring-accent-500 dark:bg-[#171717] dark:border-neutral-700"
+              />
+              <label htmlFor="excludeCommon" className="text-sm text-gray-600 dark:text-neutral-400 cursor-pointer select-none">
+                  Exclude common framework classes (btn, container, row, etc.)
+              </label>
           </div>
-        </Card>
+        </div>
+      </Card>
 
-        <Card className="flex flex-col flex-1 h-[400px]">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2 flex items-center justify-between">
-                <span>Input HTML</span>
-                <span className="text-[10px] text-gray-400 font-normal">Auto-processing enabled</span>
-            </h3>
-            <textarea 
-                value={htmlInput}
-                onChange={(e) => setHtmlInput(e.target.value)}
-                placeholder='<div class="card">...</div>'
-                className="flex-1 w-full bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-md p-3 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none leading-relaxed"
-            />
-        </Card>
-      </div>
+      {/* 2. Statistics (Top Right) */}
+      <Card className="h-full flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+             <h3 className="text-sm font-medium text-gray-900 dark:text-white">Statistics</h3>
+             {htmlOutput && <div className="text-xs text-green-600 flex items-center gap-1"><CheckCircle size={12}/> Success</div>}
+          </div>
+          <div className="grid grid-cols-3 gap-4 text-center flex-1">
+              <div className="p-3 bg-white dark:bg-[#171717] rounded-md border border-gray-200 dark:border-neutral-800 flex flex-col justify-center items-center h-full">
+                  <div className="text-xl font-bold text-gray-900 dark:text-white">{stats.htmlClasses}</div>
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Classes</div>
+              </div>
+              <div className="p-3 bg-white dark:bg-[#171717] rounded-md border border-gray-200 dark:border-neutral-800 flex flex-col justify-center items-center h-full">
+                  <div className="text-xl font-bold text-gray-900 dark:text-white">{stats.cssSelectors}</div>
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Selectors</div>
+              </div>
+              <div className="p-3 bg-white dark:bg-[#171717] rounded-md border border-gray-200 dark:border-neutral-800 flex flex-col justify-center items-center h-full">
+                  <div className="text-xl font-bold text-gray-400 dark:text-neutral-500">{stats.excludedClasses}</div>
+                  <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-1">Skipped</div>
+              </div>
+          </div>
+      </Card>
 
-      <div className="space-y-6">
-        <Card className="bg-gray-50 dark:bg-[#121212] border-gray-200 dark:border-neutral-800">
-            <div className="flex items-center justify-between mb-2">
-               <h3 className="text-sm font-medium text-gray-900 dark:text-white">Statistics</h3>
-               {htmlOutput && <div className="text-xs text-green-600 flex items-center gap-1"><CheckCircle size={12}/> Success</div>}
-            </div>
-            <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="p-3 bg-white dark:bg-[#1e1e1e] rounded border border-gray-100 dark:border-neutral-800">
-                    <div className="text-xl font-bold text-gray-900 dark:text-white">{stats.htmlClasses}</div>
-                    <div className="text-[10px] text-gray-500 uppercase tracking-wider">Classes</div>
-                </div>
-                <div className="p-3 bg-white dark:bg-[#1e1e1e] rounded border border-gray-100 dark:border-neutral-800">
-                    <div className="text-xl font-bold text-gray-900 dark:text-white">{stats.cssSelectors}</div>
-                    <div className="text-[10px] text-gray-500 uppercase tracking-wider">Selectors</div>
-                </div>
-                <div className="p-3 bg-white dark:bg-[#1e1e1e] rounded border border-gray-100 dark:border-neutral-800">
-                    <div className="text-xl font-bold text-gray-400 dark:text-neutral-500">{stats.excludedClasses}</div>
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider">Skipped</div>
-                </div>
-            </div>
-        </Card>
+      {/* 3. Input HTML (Bottom Left) */}
+      <Card className="flex flex-col h-[600px]">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2 flex items-center justify-between">
+              <span>Input HTML</span>
+              <span className="text-[10px] text-gray-400 font-normal">Auto-processing enabled</span>
+          </h3>
+          <textarea 
+              value={htmlInput}
+              onChange={(e) => setHtmlInput(e.target.value)}
+              placeholder='<div class="card">...</div>'
+              className="flex-1 w-full bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-md p-3 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none leading-relaxed"
+          />
+      </Card>
 
-        <Card className="flex flex-col flex-1 h-[470px]">
-            <div className="flex items-center justify-between mb-2">
-                 <h3 className="text-sm font-medium text-gray-900 dark:text-white">Output HTML</h3>
-                 <Button variant="secondary" onClick={handleCopy} disabled={!htmlOutput} className="h-7 px-2 text-xs">
-                     <Copy size={12} className="mr-1" /> Copy
-                 </Button>
-            </div>
-            <textarea 
-                readOnly
-                value={htmlOutput}
-                placeholder="Transformed code will appear here..."
-                className="flex-1 w-full bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-md p-3 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none text-gray-600 dark:text-neutral-300 leading-relaxed"
-            />
-        </Card>
-      </div>
+      {/* 4. Output HTML (Bottom Right) */}
+      <Card className="flex flex-col h-[600px]">
+          <div className="flex items-center justify-between mb-2">
+               <h3 className="text-sm font-medium text-gray-900 dark:text-white">Output HTML</h3>
+               <Button variant="secondary" onClick={handleCopy} disabled={!htmlOutput} className="h-7 px-2 text-xs">
+                   <Copy size={12} className="mr-1" /> Copy
+               </Button>
+          </div>
+          <textarea 
+              readOnly
+              value={htmlOutput}
+              placeholder="Transformed code will appear here..."
+              className="flex-1 w-full bg-white dark:bg-[#171717] border border-gray-200 dark:border-neutral-800 rounded-md p-3 text-xs font-mono focus:outline-none focus:border-accent-500 resize-none text-gray-600 dark:text-neutral-300 leading-relaxed"
+          />
+      </Card>
     </div>
   );
 };
